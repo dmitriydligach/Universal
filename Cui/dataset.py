@@ -2,12 +2,13 @@
 
 import sys
 sys.dont_write_bytecode = True
-import os, shutil
+import os, shutil, random
 from configparser import ConfigParser
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
 MODEL_DIR = 'Model/'
+TRAIN_SIZE = 0.80
 
 class DatasetProvider:
   """Make x and y from raw data"""
@@ -15,20 +16,33 @@ class DatasetProvider:
   def __init__(self, corpus_path):
     """Constructor"""
 
-    texts = []
+    x = []
+    y = []
     for file in os.listdir(corpus_path):
+
       path = os.path.join(corpus_path, file)
-      text = open(path).read()
-      texts.append(text)
+      text = open(path).read().split()
+      unique = list(set(text))
+      random.shuffle(unique)
+
+      train_examples = round(len(unique) * TRAIN_SIZE)
+      test_examples = len(unique) - train_examples
+      x.append(' '.join(unique[:train_examples]))
+      y.append(' '.join(unique[train_examples:]))
 
     tokenizer = Tokenizer()
-    tokenizer.fit_on_texts(texts)
-    sequences = tokenizer.texts_to_sequences(texts)
-    x = pad_sequences(sequences)
+    tokenizer.fit_on_texts(x)
+    x = tokenizer.texts_to_sequences(x)
+    y = tokenizer.texts_to_sequences(y)
 
-    print(sequences[234])
+    x = pad_sequences(x)
+    y = pad_sequences(y)
+
+    print(x[234])
     print('unique tokens:', len(tokenizer.word_index))
     print('shape:', x.shape)
+
+
 
     if os.path.isdir(MODEL_DIR):
       print('removing old model directory...')
