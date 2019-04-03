@@ -20,18 +20,20 @@ class DatasetProvider:
       path = os.path.join(corpus_path, file)
       text = open(path).read()
       texts.append(text)
-    print('finished reading files')
 
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(texts)
-    print('finished building vocabulary')
+    sequences = tokenizer.texts_to_sequences(texts)
+    x = pad_sequences(sequences)
+
+    print(sequences[234])
+    print('unique tokens:', len(tokenizer.word_index))
+    print('shape:', x.shape)
 
     if os.path.isdir(MODEL_DIR):
       print('removing old model directory...')
       shutil.rmtree(MODEL_DIR)
     os.mkdir(MODEL_DIR)
-
-    # self.make_and_write_token_alphabet()
 
   def load(self,
            maxlen=float('inf'),
