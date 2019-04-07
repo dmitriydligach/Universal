@@ -30,7 +30,7 @@ class DatasetProvider:
     x = []
     y = []
 
-    for file in os.listdir(self.corpus_path)[:50]:
+    for file in os.listdir(self.corpus_path)[:500]:
       path = os.path.join(self.corpus_path, file)
       text = open(path).read().split()
       unique = list(set(text))
@@ -46,10 +46,10 @@ class DatasetProvider:
     x = self.tokenizer.texts_to_sequences(x)
     y = self.tokenizer.texts_to_sequences(y)
 
-    x = pad_sequences(x)
-    y = pad_sequences(y)
+    x = pad_sequences(x, maxlen=1000)
+    y = pad_sequences(y, maxlen=1000)
 
-    y = numpy.random.randint(0, 2, size=x.shape[0])
+    # y = numpy.random.randint(0, 2, size=x.shape[0])
 
     return x, y
 
