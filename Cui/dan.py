@@ -86,24 +86,29 @@ if __name__ == "__main__":
   train_dir = os.path.join(base, cfg.get('data', 'train'))
 
   dp = dataset.DatasetProvider(train_dir)
-  x1, x2 = dp.load()
+  x1, x2, y = dp.load()
 
   print('x1 shape:', x1.shape)
   print('x2 shape:', x2.shape)
+  print('y shape:', y.shape)
 
-  train_x1, val_x1, train_x2, val_x2 = train_test_split(
-    x1, x2,
-    test_size=cfg.getfloat('args', 'test_size'))
+  train_x1, val_x1, train_x2, val_x2, train_y, val_y = train_test_split(
+    x1, x2, y, test_size=cfg.getfloat('args', 'test_size'))
 
+  print(train_x1.shape)
+  print(val_x1.shape)
+  print(train_x2.shape)
+  print(val_x2.shape)
+  print(train_y.shape)
+  print(val_y.shape)
+  
   model = get_model(len(dp.tokenizer.word_index)+1, x1.shape[1])
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
                 metrics=['accuracy'])
   model.fit([train_x1, train_x2],
-            np.random.randint(0, 2, size=train_x1.shape[0]),
-            validation_data=(
-              [val_x1, val_x2],
-              np.random.randint(0, 2, size=val_x1.shape[0])),
+            train_y,
+            validation_data=([val_x1, val_x2], val_y),
             epochs=cfg.getint('dan', 'epochs'),
             batch_size=cfg.getint('dan', 'batch'),
             validation_split=0.0)

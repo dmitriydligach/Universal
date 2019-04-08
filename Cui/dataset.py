@@ -52,6 +52,7 @@ class DatasetProvider:
       numpy.ones(x1.shape[0], dtype='int'),
       numpy.zeros(x1.shape[0], dtype='int')))
 
+    # make negative examples by pairing x1 with permuted x2
     x1 = numpy.concatenate((x1, x1))
     x2 = numpy.concatenate((x2, numpy.random.permutation(x2)))
 
