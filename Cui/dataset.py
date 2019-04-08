@@ -9,7 +9,7 @@ from keras.preprocessing.sequence import pad_sequences
 
 MODEL_DIR = 'Model/'
 TRAIN_SIZE = 0.50
-MAXLEN = 1000
+MAXLEN = 5000
 
 class DatasetProvider:
   """Make x and y from raw data"""
@@ -44,11 +44,18 @@ class DatasetProvider:
     self.tokenizer.fit_on_texts(x1 + x2)
     x1 = self.tokenizer.texts_to_sequences(x1)
     x2 = self.tokenizer.texts_to_sequences(x2)
-    
+
     x1 = pad_sequences(x1, maxlen=MAXLEN)
     x2 = pad_sequences(x2, maxlen=MAXLEN)
 
-    return x1, x2
+    y = numpy.concatenate((
+      numpy.ones(x1.shape[0], dtype='int'),
+      numpy.zeros(x1.shape[0], dtype='int')))
+
+    x1 = numpy.concatenate((x1, x1))
+    x2 = numpy.concatenate((x2, numpy.random.permutation(x2)))
+
+    return x1, x2, y
 
 if __name__ == "__main__":
 
@@ -58,4 +65,9 @@ if __name__ == "__main__":
   train_dir = os.path.join(base, cfg.get('data', 'train'))
 
   dat_prov = DatasetProvider(train_dir)
-  x, y = dat_prov.load()
+  x1, x2, y = dat_prov.load()
+
+  print('x1.shape:', x1.shape)
+  print('x2.shape:', x2.shape)
+  print('y.shape:', y.shape)
+  print('y:', y)
