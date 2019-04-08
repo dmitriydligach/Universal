@@ -9,6 +9,7 @@ from keras.preprocessing.sequence import pad_sequences
 
 MODEL_DIR = 'Model/'
 TRAIN_SIZE = 0.50
+MAXLEN = 1000
 
 class DatasetProvider:
   """Make x and y from raw data"""
@@ -27,31 +28,27 @@ class DatasetProvider:
   def load(self):
     """Make x and y"""
 
-    x = []
-    y = []
+    x1 = []
+    x2 = []
 
     for file in os.listdir(self.corpus_path)[:500]:
       path = os.path.join(self.corpus_path, file)
-      text = open(path).read().split()
-      unique = list(set(text))
+      tokens = open(path).read().split()
+      unique = list(set(tokens))
 
       random.shuffle(unique)
+      x1_count = round(len(unique) * TRAIN_SIZE)
+      x1.append(' '.join(unique[:x1_count]))
+      x2.append(' '.join(unique[x1_count:]))
 
-      train_examples = round(len(unique) * TRAIN_SIZE)
-      test_examples = len(unique) - train_examples
-      x.append(' '.join(unique[:train_examples]))
-      y.append(' '.join(unique[train_examples:]))
+    self.tokenizer.fit_on_texts(x1 + x2)
+    x1 = self.tokenizer.texts_to_sequences(x1)
+    x2 = self.tokenizer.texts_to_sequences(x2)
+    
+    x1 = pad_sequences(x1, maxlen=MAXLEN)
+    x2 = pad_sequences(x2, maxlen=MAXLEN)
 
-    self.tokenizer.fit_on_texts(x)
-    x = self.tokenizer.texts_to_sequences(x)
-    y = self.tokenizer.texts_to_sequences(y)
-
-    x = pad_sequences(x, maxlen=1000)
-    y = pad_sequences(y, maxlen=1000)
-
-    # y = numpy.random.randint(0, 2, size=x.shape[0])
-
-    return x, y
+    return x1, x2
 
 if __name__ == "__main__":
 
