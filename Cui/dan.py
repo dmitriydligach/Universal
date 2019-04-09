@@ -23,6 +23,7 @@ import configparser
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 from keras import Input
@@ -95,13 +96,6 @@ if __name__ == "__main__":
   train_x1, val_x1, train_x2, val_x2, train_y, val_y = train_test_split(
     x1, x2, y, test_size=cfg.getfloat('args', 'test_size'))
 
-  print(train_x1.shape)
-  print(val_x1.shape)
-  print(train_x2.shape)
-  print(val_x2.shape)
-  print(train_y.shape)
-  print(val_y.shape)
-  
   model = get_model(len(dp.tokenizer.word_index)+1, x1.shape[1])
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
@@ -113,14 +107,7 @@ if __name__ == "__main__":
             batch_size=cfg.getint('dan', 'batch'),
             validation_split=0.0)
 
-  # probability for each class; (test size, num of classes)
-  distribution = model.predict([val_x1, val_x2])
-
-  # turn into an indicator matrix
-  distribution[distribution < 0.5] = 0
-  distribution[distribution >= 0.5] = 1
-
-  # f1 = f1_score(val_y, distribution, average='macro')
-  # p = precision_score(val_y, distribution, average='macro')
-  # r = recall_score(val_y, distribution, average='macro')
-  # print("\nmacro: p: %.3f - r: %.3f - f1: %.3f" % (p, r, f1))
+  probs = model.predict([val_x1, val_x2])
+  predictions = (probs > 0.5).astype(int)
+  accuracy = accuracy_score(val_y, predictions)
+  print('accuracy: ', accuracy)
