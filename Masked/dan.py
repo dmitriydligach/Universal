@@ -56,6 +56,8 @@ def get_model(vocabulary_size, max_seq_len):
     output_dim=300,
     input_length=max_seq_len)(input_tensor1)
   x1 = GlobalAveragePooling1D(name='AL1')(x1)
+  x1 = Dense(512, activation='relu', name='HL')(x1)
+  x1 = Dropout(0.25)(x1)
 
   input_tensor2 = Input(shape=(max_seq_len,))
 
@@ -64,6 +66,8 @@ def get_model(vocabulary_size, max_seq_len):
     output_dim=300,
     input_length=max_seq_len)(input_tensor2)
   x2 = GlobalAveragePooling1D(name='AL2')(x2)
+  x2 = Dense(512, activation='relu', name='HL')(x2)
+  x2 = Dropout(0.25)(x2)
 
   x = concatenate([x1, x2], axis=-1)
 
