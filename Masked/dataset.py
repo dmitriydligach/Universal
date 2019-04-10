@@ -7,24 +7,29 @@ from configparser import ConfigParser
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
-MODEL_DIR = 'Model/'
-N_FILES = 500
-SPLIT = 0.50
-MAXLEN = 10000 # about 2% have more unique CUIs
-
 class DatasetProvider:
   """Make x and y from raw data"""
 
-  def __init__(self, corpus_path):
+  def __init__(
+    self,
+    corpus_path,
+    model_dir,
+    max_seq_len,
+    n_files,
+    split):
     """Constructor"""
 
-    self.corpus_path = corpus_path
     self.tokenizer = Tokenizer(oov_token='oov_token')
 
+    self.corpus_path = corpus_path
+    self.max_seq_len = max_seq_len
+    self.n_files = n_files
+    self.split = split
+
     # prepare model directory
-    if os.path.isdir(MODEL_DIR):
-      shutil.rmtree(MODEL_DIR)
-    os.mkdir(MODEL_DIR)
+    if os.path.isdir(model_dir):
+      shutil.rmtree(model_dir)
+    os.mkdir(model_dir)
 
   def load(self):
     """Make x and y"""
@@ -32,13 +37,13 @@ class DatasetProvider:
     x1 = [] # to turn into a np array (n_docs, max_seq_len)
     x2 = [] # to turn into a np array (n_docs, max_seq_len)
 
-    for file in os.listdir(self.corpus_path)[:N_FILES]:
+    for file in os.listdir(self.corpus_path)[:self.n_files]:
       path = os.path.join(self.corpus_path, file)
       tokens = open(path).read().split()
       unique = list(set(tokens))
       random.shuffle(unique)
 
-      x1_count = round(len(unique) * SPLIT)
+      x1_count = round(len(unique) * self.split)
       x1.append(' '.join(unique[:x1_count]))
       x2.append(' '.join(unique[x1_count:]))
 
@@ -47,8 +52,8 @@ class DatasetProvider:
     x1 = self.tokenizer.texts_to_sequences(x1)
     x2 = self.tokenizer.texts_to_sequences(x2)
 
-    x1 = pad_sequences(x1, maxlen=MAXLEN)
-    x2 = pad_sequences(x2, maxlen=MAXLEN)
+    x1 = pad_sequences(x1, maxlen=self.max_seq_len)
+    x2 = pad_sequences(x2, maxlen=self.max_seq_len)
 
     # twice the size of x1 with  half as 1s and the rest 0s
     y = numpy.concatenate((
@@ -63,7 +68,7 @@ class DatasetProvider:
 
 if __name__ == "__main__":
 
-  cfg = ConfigParser()
+  cfg = ConfigParser(allow_no_value)
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   train_dir = os.path.join(base, cfg.get('data', 'train'))

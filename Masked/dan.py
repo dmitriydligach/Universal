@@ -90,7 +90,12 @@ if __name__ == "__main__":
   base = os.environ['DATA_ROOT']
   train_dir = os.path.join(base, cfg.get('data', 'train'))
 
-  dp = dataset.DatasetProvider(train_dir)
+  dp = dataset.DatasetProvider(
+    train_dir,
+    cfg.get('data', 'model_dir'),
+    cfg.getint('args', 'max_seq_len'),
+    cfg.getint('args', 'n_files'),
+    cfg.getfloat('args', 'split'))
   x1, x2, y = dp.load()
 
   print('x1 shape:', x1.shape)
