@@ -84,17 +84,15 @@ def get_model(vocabulary_size, max_seq_len):
 
 if __name__ == "__main__":
 
-  cfg = configparser.ConfigParser()
+  cfg = configparser.ConfigParser(allow_no_value=True)
   cfg.read(sys.argv[1])
-
   base = os.environ['DATA_ROOT']
-  train_dir = os.path.join(base, cfg.get('data', 'train'))
 
   dp = dataset.DatasetProvider(
-    train_dir,
+    os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
     cfg.getint('args', 'max_seq_len'),
-    cfg.getint('args', 'n_files'),
+    cfg.get('args', 'n_files'),
     cfg.getfloat('args', 'split'))
   x1, x2, y = dp.load()
 

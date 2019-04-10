@@ -12,7 +12,7 @@ class DatasetProvider:
 
   def __init__(
     self,
-    corpus_path,
+    train_dir,
     model_dir,
     max_seq_len,
     n_files,
@@ -21,12 +21,11 @@ class DatasetProvider:
 
     self.tokenizer = Tokenizer(oov_token='oov_token')
 
-    self.corpus_path = corpus_path
+    self.train_dir = train_dir
     self.max_seq_len = max_seq_len
-    self.n_files = n_files
+    self.n_files = None if n_files == 'all' else int(n_files)
     self.split = split
 
-    # prepare model directory
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
@@ -37,8 +36,8 @@ class DatasetProvider:
     x1 = [] # to turn into a np array (n_docs, max_seq_len)
     x2 = [] # to turn into a np array (n_docs, max_seq_len)
 
-    for file in os.listdir(self.corpus_path)[:self.n_files]:
-      path = os.path.join(self.corpus_path, file)
+    for file in os.listdir(self.train_dir)[:self.n_files]:
+      path = os.path.join(self.train_dir, file)
       tokens = open(path).read().split()
       unique = list(set(tokens))
       random.shuffle(unique)
@@ -68,7 +67,7 @@ class DatasetProvider:
 
 if __name__ == "__main__":
 
-  cfg = ConfigParser(allow_no_value)
+  cfg = ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   train_dir = os.path.join(base, cfg.get('data', 'train'))
