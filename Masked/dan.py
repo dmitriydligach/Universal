@@ -34,7 +34,7 @@ from keras.models import Model
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.embeddings import Embedding
 from keras.layers import GlobalAveragePooling1D
-from keras.layers import concatenate
+from keras.layers import concatenate, dot
 from keras.models import load_model
 from keras.callbacks import Callback
 
@@ -63,7 +63,7 @@ def get_model(vocabulary_size, max_seq_len):
     input_length=max_seq_len)(input_tensor2)
   x2 = GlobalAveragePooling1D(name='AL2')(x2)
 
-  x = concatenate([x1, x2], axis=-1)
+  x = dot([x1, x2], axes=-1)
   output_tensor = Dense(1, activation='sigmoid')(x)
 
   model = Model([input_tensor1, input_tensor2], output_tensor)
