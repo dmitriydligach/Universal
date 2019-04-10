@@ -55,7 +55,6 @@ def get_model(vocabulary_size, max_seq_len):
     output_dim=300,
     input_length=max_seq_len)(input_tensor1)
   x1 = GlobalAveragePooling1D(name='AL1')(x1)
-  x1 = Dense(512, activation='relu')(x1)
 
   input_tensor2 = Input(shape=(max_seq_len,))
   x2 = Embedding(
@@ -63,9 +62,10 @@ def get_model(vocabulary_size, max_seq_len):
     output_dim=300,
     input_length=max_seq_len)(input_tensor2)
   x2 = GlobalAveragePooling1D(name='AL2')(x2)
-  x2 = Dense(512, activation='relu')(x2)
 
-  x = dot([x1, x2], axes=-1)
+  # x = dot([x1, x2], axes=-1)
+  x = concatenate([x1, x2], axis=-1)
+  x = Dense(512, activation='relu')(x)
   output_tensor = Dense(1, activation='sigmoid')(x)
 
   model = Model([input_tensor1, input_tensor2], output_tensor)
