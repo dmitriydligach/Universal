@@ -46,7 +46,35 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def get_model(vocabulary_size, max_seq_len):
+def get_model_dot(vocabulary_size, max_seq_len):
+  """Model definition"""
+
+  embed = Embedding(
+    input_dim=vocabulary_size,
+    output_dim=300,
+    input_length=max_seq_len,
+    name='EL')
+  average = GlobalAveragePooling1D(name='AL')
+
+  input_tensor1 = Input(shape=(max_seq_len,))
+  x1 = embed(input_tensor1)
+  x1 = average(x1)
+  x1 = Dense(128)(x1)
+
+  input_tensor2 = Input(shape=(max_seq_len,))
+  x2 = embed(input_tensor2)
+  x2 = average(x2)
+  x2 = Dense(128)(x2)
+
+  x = dot([x1, x2], axes=-1)
+  output_tensor = Dense(1, activation='sigmoid')(x)
+
+  model = Model([input_tensor1, input_tensor2], output_tensor)
+
+  model.summary()
+  return model
+
+def get_model_concat(vocabulary_size, max_seq_len):
   """Model definition"""
 
   embed = Embedding(
@@ -62,9 +90,7 @@ def get_model(vocabulary_size, max_seq_len):
 
   input_tensor2 = Input(shape=(max_seq_len,))
   x2 = embed(input_tensor2)
-  x2 = average(name='AL2')(x2)
-
-  # x = dot([x1, x2], axes=-1)
+  x2 = average(x2)
 
   x = concatenate([x1, x2], axis=-1)
   x = Dense(512, activation='relu')(x)
@@ -96,7 +122,7 @@ if __name__ == "__main__":
   train_x1, val_x1, train_x2, val_x2, train_y, val_y = train_test_split(
     x1, x2, y, test_size=cfg.getfloat('args', 'test_size'))
 
-  model = get_model(len(dp.tokenizer.word_index)+1, x1.shape[1])
+  model = get_model_concat(len(dp.tokenizer.word_index)+1, x1.shape[1])
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
                 metrics=['accuracy'])
