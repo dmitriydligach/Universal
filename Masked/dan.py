@@ -55,17 +55,16 @@ def get_model_dot(vocabulary_size, max_seq_len):
     input_length=max_seq_len,
     name='EL')
   average = GlobalAveragePooling1D(name='AL')
-  project = Dense(128, name='DL')
 
   input_tensor1 = Input(shape=(max_seq_len,))
   x1 = embed(input_tensor1)
   x1 = average(x1)
-  x1 = project(x1)
+  x1 = Dense(128, name='DL1')(x1)
 
   input_tensor2 = Input(shape=(max_seq_len,))
   x2 = embed(input_tensor2)
   x2 = average(x2)
-  x2 = project(x2)
+  x2 = Dense(128, name='DL2')(x2)
 
   x = dot([x1, x2], axes=-1)
   output_tensor = Dense(1, activation='sigmoid')(x)

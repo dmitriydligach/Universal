@@ -42,9 +42,8 @@ class DatasetProvider:
       unique = list(set(tokens))
 
       # skip very long files
-      if len(unique) > self.max_seq_len * 2:
-        print("skipping:", len(unique), file)
-        continue
+      # if len(unique) > 500:
+      #  continue
 
       random.shuffle(unique)
       x1_count = round(len(unique) * self.split)
