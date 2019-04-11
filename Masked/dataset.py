@@ -40,8 +40,13 @@ class DatasetProvider:
       path = os.path.join(self.train_dir, file)
       tokens = open(path).read().split()
       unique = list(set(tokens))
-      random.shuffle(unique)
 
+      # skip very long files
+      if len(unique) > self.max_seq_len * 2:
+        print("skipping:", len(unique), file)
+        continue
+
+      random.shuffle(unique)
       x1_count = round(len(unique) * self.split)
       x1.append(' '.join(unique[:x1_count]))
       x2.append(' '.join(unique[x1_count:]))
