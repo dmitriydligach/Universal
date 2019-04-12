@@ -37,6 +37,7 @@ from keras.layers import GlobalAveragePooling1D
 from keras.layers import concatenate, dot
 from keras.models import load_model
 from keras.callbacks import Callback
+from keras.utils import plot_model
 
 import dataset
 
@@ -72,7 +73,9 @@ def get_model_dot(vocabulary_size, max_seq_len):
 
   model = Model([input_tensor1, input_tensor2], output_tensor)
 
+  plot_model(model, show_shapes=True, to_file='Model/model.png')
   model.summary()
+
   return model
 
 def get_model_concat(vocabulary_size, max_seq_len):
@@ -95,12 +98,14 @@ def get_model_concat(vocabulary_size, max_seq_len):
 
   # TODO: alternatively take the difference x1 - x2
   x = concatenate([x1, x2], axis=-1)
-  x = Dense(512, activation='relu')(x)
+  x = Dense(512, activation='relu', name='DL')(x)
   output_tensor = Dense(1, activation='sigmoid')(x)
 
   model = Model([input_tensor1, input_tensor2], output_tensor)
 
+  plot_model(model, show_shapes=True, to_file='Model/model.png')
   model.summary()
+
   return model
 
 if __name__ == "__main__":
@@ -124,7 +129,7 @@ if __name__ == "__main__":
   train_x1, val_x1, train_x2, val_x2, train_y, val_y = train_test_split(
     x1, x2, y, test_size=cfg.getfloat('args', 'test_size'))
 
-  model = get_model_dot(len(dp.tokenizer.word_index)+1, x1.shape[1])
+  model = get_model_concat(len(dp.tokenizer.word_index)+1, x1.shape[1])
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
                 metrics=['accuracy'])
