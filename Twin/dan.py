@@ -93,6 +93,7 @@ def get_model_concat(vocabulary_size, max_seq_len):
   x2 = embed(input_tensor2)
   x2 = average(x2)
 
+  # TODO: alternatively take the difference x1 - x2
   x = concatenate([x1, x2], axis=-1)
   x = Dense(512, activation='relu')(x)
   output_tensor = Dense(1, activation='sigmoid')(x)
