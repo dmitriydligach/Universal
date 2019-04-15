@@ -47,16 +47,16 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def get_model_dot(vocabulary_size, max_seq_len, emb_dim, hidden):
+def get_model_dot(vocabulary_size, max_seq_len):
   """Model definition"""
 
   embed = Embedding(
     input_dim=vocabulary_size,
-    output_dim=emb_dim,
+    output_dim=cfg.getint('dan', 'emb_dim'),
     input_length=max_seq_len,
     name='EL')
   average = GlobalAveragePooling1D(name='AL')
-  project = Dense(hidden, name='DL')
+  project = Dense(cfg.getint('dan', 'hidden'), name='DL')
 
   input_tensor1 = Input(shape=(max_seq_len,))
   x1 = embed(input_tensor1)
@@ -78,12 +78,12 @@ def get_model_dot(vocabulary_size, max_seq_len, emb_dim, hidden):
 
   return model
 
-def get_model_concat(vocabulary_size, max_seq_len, emb_dim, hidden):
+def get_model_concat(vocabulary_size, max_seq_len):
   """Model definition"""
 
   embed = Embedding(
     input_dim=vocabulary_size,
-    output_dim=emb_dim,
+    output_dim=cfg.getint('dan', 'emb_dim'),
     input_length=max_seq_len,
     name='EL')
   average = GlobalAveragePooling1D(name='AL')
@@ -97,7 +97,7 @@ def get_model_concat(vocabulary_size, max_seq_len, emb_dim, hidden):
   x2 = average(x2)
 
   x = concatenate([x1, x2], axis=-1)
-  x = Dense(hidden, activation='relu', name='DL')(x)
+  x = Dense(cfg.getint('dan', 'hidden'), activation='relu', name='DL')(x)
 
   output_tensor = Dense(1, activation='sigmoid')(x)
 
@@ -108,10 +108,9 @@ def get_model_concat(vocabulary_size, max_seq_len, emb_dim, hidden):
 
   return model
 
-if __name__ == "__main__":
+def main():
+  """Driver function"""
 
-  cfg = configparser.ConfigParser(allow_no_value=True)
-  cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
 
   dp = dataset.DatasetProvider(
@@ -131,9 +130,8 @@ if __name__ == "__main__":
 
   model = get_model_concat(
     len(dp.tokenizer.word_index) + 1,
-    x1.shape[1],
-    cfg.getint('dan', 'emb_dim'),
-    cfg.getint('dan', 'hidden'))
+    x1.shape[1])
+
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
                 metrics=['accuracy'])
@@ -149,3 +147,10 @@ if __name__ == "__main__":
   predictions = (probs > 0.5).astype(int)
   accuracy = accuracy_score(val_y, predictions)
   print('accuracy: ', accuracy)
+
+if __name__ == "__main__":
+
+  cfg = configparser.ConfigParser(allow_no_value=True)
+  cfg.read(sys.argv[1])
+
+  main()

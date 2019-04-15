@@ -2,7 +2,7 @@
 
 import sys
 sys.dont_write_bytecode = True
-import os, shutil, random, numpy
+import os, shutil, random, numpy, pickle
 from configparser import ConfigParser
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -41,12 +41,14 @@ class DatasetProvider:
       tokens = open(path).read().split()
       unique = list(set(tokens))
       random.shuffle(unique)
-      
+
       x1_count = round(len(unique) * self.split)
       x1.append(' '.join(unique[:x1_count]))
       x2.append(' '.join(unique[x1_count:]))
 
     self.tokenizer.fit_on_texts(x1 + x2)
+    pickle_file = open('Model/tokenizer.p', 'wb')
+    pickle.dump(self.tokenizer, pickle_file)
 
     x1 = self.tokenizer.texts_to_sequences(x1)
     x2 = self.tokenizer.texts_to_sequences(x2)
