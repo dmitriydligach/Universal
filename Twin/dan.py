@@ -133,7 +133,7 @@ if __name__ == "__main__":
     len(dp.tokenizer.word_index) + 1,
     x1.shape[1],
     cfg.getint('dan', 'emb_dim'),
-    cfg.getint('dan'), 'hidden')
+    cfg.getint('dan', 'hidden'))
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
                 metrics=['accuracy'])
