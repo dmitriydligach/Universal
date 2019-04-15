@@ -47,7 +47,7 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def get_model_dot(vocabulary_size, max_seq_len, emb_dim):
+def get_model_dot(vocabulary_size, max_seq_len, emb_dim, hidden):
   """Model definition"""
 
   embed = Embedding(
@@ -56,7 +56,7 @@ def get_model_dot(vocabulary_size, max_seq_len, emb_dim):
     input_length=max_seq_len,
     name='EL')
   average = GlobalAveragePooling1D(name='AL')
-  project = Dense(128, name='DL')
+  project = Dense(hidden, name='DL')
 
   input_tensor1 = Input(shape=(max_seq_len,))
   x1 = embed(input_tensor1)
@@ -78,7 +78,7 @@ def get_model_dot(vocabulary_size, max_seq_len, emb_dim):
 
   return model
 
-def get_model_concat(vocabulary_size, max_seq_len, emb_dim):
+def get_model_concat(vocabulary_size, max_seq_len, emb_dim, hidden):
   """Model definition"""
 
   embed = Embedding(
@@ -97,7 +97,7 @@ def get_model_concat(vocabulary_size, max_seq_len, emb_dim):
   x2 = average(x2)
 
   x = concatenate([x1, x2], axis=-1)
-  x = Dense(512, activation='relu', name='DL')(x)
+  x = Dense(hidden, activation='relu', name='DL')(x)
 
   output_tensor = Dense(1, activation='sigmoid')(x)
 
@@ -132,7 +132,8 @@ if __name__ == "__main__":
   model = get_model_concat(
     len(dp.tokenizer.word_index) + 1,
     x1.shape[1],
-    cfg.getint('dan', 'emb_dim'))
+    cfg.getint('dan', 'emb_dim'),
+    cfg.getint('dan'), 'hidden')
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
                 metrics=['accuracy'])
