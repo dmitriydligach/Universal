@@ -128,10 +128,7 @@ def main():
   train_x1, val_x1, train_x2, val_x2, train_y, val_y = train_test_split(
     x1, x2, y, test_size=cfg.getfloat('args', 'test_size'))
 
-  model = get_model_concat(
-    len(dp.tokenizer.word_index) + 1,
-    x1.shape[1])
-
+  model = get_model_concat(len(dp.tokenizer.word_index) + 1, x1.shape[1])
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
                 metrics=['accuracy'])
