@@ -22,7 +22,7 @@ from sklearn.decomposition import TruncatedSVD
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
 from keras.models import Model
-from dataset import DatasetProvider
+from phenot_dataset import DatasetProvider
 import i2b2
 
 # ignore sklearn warnings
@@ -46,11 +46,10 @@ def grid_search(x, y):
 
   return grid_search.best_estimator_
 
-def run_evaluation_dense(disease, judgement):
+def run_evaluation_dense():
   """Use pre-trained patient representations"""
 
-  print('disease:', disease)
-  x_train, y_train, x_test, y_test = data_dense(disease, judgement)
+  x_train, y_train, x_test, y_test = data_dense()
 
   if cfg.get('data', 'classif_param') == 'search':
     classifier = grid_search(x_train, y_train)
@@ -64,16 +63,12 @@ def run_evaluation_dense(disease, judgement):
   f1 = f1_score(y_test, predictions, average='macro')
   print("precision: %.3f - recall: %.3f - f1: %.3f\n" % (p, r, f1))
 
-  return p, r, f1
-
-def data_dense(disease, judgement):
+def data_dense():
   """Data to feed into code prediction model"""
 
   base = os.environ['DATA_ROOT']
-  train_data = os.path.join(base, cfg.get('data', 'train_data'))
-  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
-  test_data = os.path.join(base, cfg.get('data', 'test_data'))
-  test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
+  train_data = os.path.join(base, cfg.get('data', 'train'))
+  test_data = os.path.join(base, cfg.get('data', 'test'))
 
   # load pre-trained model
   model = load_model(cfg.get('data', 'model_file'))
@@ -85,14 +80,9 @@ def data_dense(disease, judgement):
   # load training data first
   train_data_provider = DatasetProvider(
     train_data,
-    train_annot,
-    disease,
-    judgement,
     cfg.get('data', 'tokenizer_pickle'),
     maxlen)
   x1_train, x2_train, y_train = train_data_provider.load()
-
-  print('unique labels in train:', set(y_train))
 
   # make training vectors for target task
   print('original x_train shape:', x1_train.shape)
@@ -102,9 +92,6 @@ def data_dense(disease, judgement):
   # now load the test set
   test_data_provider = DatasetProvider(
     test_data,
-    test_annot,
-    disease,
-    judgement,
     cfg.get('data', 'tokenizer_pickle'),
     maxlen)
   x1_test, x2_test, y_test = test_data_provider.load()
@@ -116,28 +103,9 @@ def data_dense(disease, judgement):
 
   return x_train, y_train, x_test, y_test
 
-def run_evaluation_all_diseases():
-  """Evaluate classifier performance for all 16 comorbidities"""
-
-  base = os.environ['DATA_ROOT']
-  judgement = cfg.get('data', 'judgement')
-  evaluation = cfg.get('data', 'evaluation')
-  test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
-
-  ps = []; rs = []; f1s = []
-  for disease in i2b2.get_disease_names(test_annot, set()):
-    p, r, f1 = run_evaluation_dense(disease, judgement)
-    ps.append(p)
-    rs.append(r)
-    f1s.append(f1)
-
-  print('average p = %.3f' % np.mean(ps))
-  print('average r = %.3f' % np.mean(rs))
-  print('average f1 = %.3f' % np.mean(f1s))
-
 if __name__ == "__main__":
 
   cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
 
-  run_evaluation_all_diseases()
+  run_evaluation_dense()
