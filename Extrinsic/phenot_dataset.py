@@ -38,12 +38,14 @@ class DatasetProvider:
 
         file_path = os.path.join(label_dir, f)
         tokens = open(file_path).read().split()
-        unique = list(set(tokens))
-        random.shuffle(unique)
+        x1_count = round(len(tokens) * 0.9)
 
-        x1_count = round(len(unique) * 0.5)
-        x1.append(' '.join(unique[:x1_count]))
-        x2.append(' '.join(unique[x1_count:]))
+        x1_as_set = set(tokens[:x1_count]) # input
+        x2_as_set = set(tokens[x1_count:]) # targets
+        x1_as_set = x1_as_set - x2_as_set
+
+        x1.append(' '.join(x1_as_set))
+        x2.append(' '.join(x2_as_set))
 
     x1 = self.tokenizer.texts_to_sequences(x1)
     x2 = self.tokenizer.texts_to_sequences(x2)
