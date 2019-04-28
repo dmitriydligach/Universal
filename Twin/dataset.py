@@ -39,12 +39,14 @@ class DatasetProvider:
     for file in os.listdir(self.train_dir)[:self.n_files]:
       path = os.path.join(self.train_dir, file)
       tokens = open(path).read().split()
-      unique = list(set(tokens))
-      random.shuffle(unique)
+      x1_count = round(len(tokens) * self.split)
 
-      x1_count = round(len(unique) * self.split)
-      x1.append(' '.join(unique[:x1_count]))
-      x2.append(' '.join(unique[x1_count:]))
+      x1_as_set = set(tokens[:x1_count]) # input
+      x2_as_set = set(tokens[x1_count:]) # targets
+      x1_as_set = x1_as_set - x2_as_set
+
+      x1.append(' '.join(x1_as_set))
+      x2.append(' '.join(x2_as_set))
 
     self.tokenizer.fit_on_texts(x1 + x2)
     pickle_file = open('Model/tokenizer.p', 'wb')
