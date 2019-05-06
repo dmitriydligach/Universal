@@ -31,11 +31,12 @@ def write_patients_to_files():
 def separate_discharge_summaries():
   """Each admission is written to a separate file"""
 
+  empty_hadm_count = 0
   df = pandas.read_csv(NOTES_CSV, dtype='str')
 
   for rowid, hadmid, cat, text in zip(df.ROW_ID, df.HADM_ID, df.CATEGORY, df.TEXT):
     if pandas.isnull(hadmid):
-      print('empty hadmid for rowid', rowid)
+      empty_hadm_count += 1
       continue
 
     printable = ''.join(c for c in text if c in string.printable)
@@ -43,10 +44,12 @@ def separate_discharge_summaries():
     if cat == 'Discharge summary':
       outfile = open('%s%s_discharge.txt' % (OUT_DIR, hadmid), 'a')
     else:
-      outfile = open('%s%s_other.txt' % (OUT_DIR, hadmid), 'a')
+      outfile = open('%s%s_rest.txt' % (OUT_DIR, hadmid), 'a')
 
     outfile.write(printable + '\n')
     outfile.write('\n**************************\n\n')
+
+  print('found %d notes with empty hadmid' % empty_hadm_count)
 
 def note_type_viewer():
   """Generate stats"""
