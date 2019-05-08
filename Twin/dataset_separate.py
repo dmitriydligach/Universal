@@ -79,3 +79,8 @@ if __name__ == "__main__":
     cfg.getint('args', 'max_seq_len'),
     cfg.get('args', 'n_files'))
   x1, x2, y = dp.load()
+
+  print('x1.shape:', x1.shape)
+  print('x2.shape:', x2.shape)
+  print('y.shape:', y.shape)
+  print('y:', y)
