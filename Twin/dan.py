@@ -39,7 +39,7 @@ from keras.models import load_model
 from keras.callbacks import Callback
 from keras.utils import plot_model
 
-import dataset
+import dataset_split
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -113,7 +113,7 @@ def main():
 
   base = os.environ['DATA_ROOT']
 
-  dp = dataset.DatasetProvider(
+  dp = dataset_split.DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
     cfg.getint('args', 'max_seq_len'),
