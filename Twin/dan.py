@@ -38,6 +38,7 @@ from keras.layers import concatenate, dot
 from keras.models import load_model
 from keras.callbacks import Callback
 from keras.utils import plot_model
+from keras.callbacks import ModelCheckpoint
 
 import dataset_split
 
@@ -141,12 +142,14 @@ def main():
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
                 metrics=['accuracy'])
+  callback = ModelCheckpoint(cfg.get('data', 'checkpt_dir') + 'model.h5')
   model.fit([train_x1, train_x2],
             train_y,
             validation_data=([val_x1, val_x2], val_y),
             epochs=cfg.getint('dan', 'epochs'),
             batch_size=cfg.getint('dan', 'batch'),
-            validation_split=0.0)
+            validation_split=0.0,
+            callbacks=[callback])
   model.save(cfg.get('data', 'model_dir') + 'model.h5')
 
   probs = model.predict([val_x1, val_x2])
