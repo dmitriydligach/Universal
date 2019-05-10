@@ -79,7 +79,7 @@ def data_dense(disease, judgement):
   model = load_model(cfg.get('data', 'model_file'))
   interm_layer_model = Model(
     inputs=model.input,
-    outputs=model.get_layer(cfg.get('data', 'rep_layer')).output)
+    outputs=model.get_layer(cfg.get('data', 'rep_layer')).get_output_at(0))
   maxlen = model.get_layer(name='EL').get_config()['input_length']
 
   # load training data first
@@ -90,13 +90,11 @@ def data_dense(disease, judgement):
     judgement,
     cfg.get('data', 'tokenizer_pickle'),
     maxlen)
-  x1_train, x2_train, y_train = train_data_provider.load()
-
-  print('unique labels in train:', set(y_train))
+  x_train, y_train = train_data_provider.load()
 
   # make training vectors for target task
-  print('original x_train shape:', x1_train.shape)
-  x_train = interm_layer_model.predict([x1_train, x2_train])
+  print('original x_train shape:', x_train.shape)
+  x_train = interm_layer_model.predict([x_train, x_train])
   print('new x_train shape:', x_train.shape)
 
   # now load the test set
@@ -107,11 +105,11 @@ def data_dense(disease, judgement):
     judgement,
     cfg.get('data', 'tokenizer_pickle'),
     maxlen)
-  x1_test, x2_test, y_test = test_data_provider.load()
+  x_test, y_test = test_data_provider.load()
 
   # make test vectors for target task
-  print('original x_test shape:', x1_test.shape)
-  x_test = interm_layer_model.predict([x1_test, x2_test])
+  print('original x_test shape:', x_test.shape)
+  x_test = interm_layer_model.predict([x_test, x_test])
   print('new x_test shape:', x_test.shape)
 
   return x_train, y_train, x_test, y_test
