@@ -101,7 +101,7 @@ class DatasetProvider:
         continue
 
       tokens = open(file_path).read().split()
-      x1.append(' '.join(set(tokens)))
+      x.append(' '.join(set(tokens)))
 
     x = self.tokenizer.texts_to_sequences(x)
     x = pad_sequences(x, maxlen=self.max_seq_len)
