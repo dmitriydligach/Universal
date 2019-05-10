@@ -26,6 +26,27 @@ class DatasetProvider:
   def load(self):
     """Convert examples into lists of indices"""
 
+    x = [] # (n_docs, max_seq_len)
+    y = []  # int labels
+
+    for d in os.listdir(self.corpus_path):
+      label_dir = os.path.join(self.corpus_path, d)
+
+      for f in os.listdir(label_dir):
+        y.append(self.label2int[d.lower()])
+
+        file_path = os.path.join(label_dir, f)
+        tokens = open(file_path).read().split()
+        x.append(' '.join(set(tokens)))
+
+    x = self.tokenizer.texts_to_sequences(x)
+    x = pad_sequences(x, maxlen=self.max_seq_len)
+
+    return x, y
+
+  def load_old(self):
+    """Convert examples into lists of indices"""
+
     x1 = [] # first halfs (n_docs, max_seq_len)
     x2 = [] # second halfs (n_docs, max_seq_len)
     y = []  # int labels
