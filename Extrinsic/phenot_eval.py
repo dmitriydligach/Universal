@@ -85,7 +85,7 @@ def data_dense():
   x_train, y_train = train_data_provider.load()
 
   # make training vectors for target task
-  print('original x_train shape:', x1_train.shape)
+  print('original x_train shape:', x_train.shape)
   x_train = interm_layer_model.predict([x_train, x_train])
   print('new x_train shape:', x_train.shape)
 
