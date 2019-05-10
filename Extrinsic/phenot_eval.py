@@ -97,7 +97,7 @@ def data_dense():
   x_test, y_test = test_data_provider.load()
 
   # make test vectors for target task
-  print('original x_test shape:', x1_test.shape)
+  print('original x_test shape:', x_test.shape)
   x_test = interm_layer_model.predict([x_test, x_test])
   print('new x_test shape:', x_test.shape)
 
