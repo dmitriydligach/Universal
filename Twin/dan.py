@@ -56,7 +56,10 @@ def get_model_dot(vocabulary_size, max_seq_len):
     input_length=max_seq_len,
     name='EL')
   average = GlobalAveragePooling1D(name='AL')
-  project = Dense(cfg.getint('dan', 'hidden'), name='DL')
+  project = Dense(
+    cfg.getint('dan', 'hidden'),
+    activation='relu',
+    name='DL')
 
   input_tensor1 = Input(shape=(max_seq_len,))
   x1 = embed(input_tensor1)
@@ -87,17 +90,23 @@ def get_model_concat(vocabulary_size, max_seq_len):
     input_length=max_seq_len,
     name='EL')
   average = GlobalAveragePooling1D(name='AL')
+  project = Dense(
+    cfg.getint('dan', 'hidden'),
+    activation='relu',
+    name='DL')
 
   input_tensor1 = Input(shape=(max_seq_len,))
   x1 = embed(input_tensor1)
   x1 = average(x1)
+  x1 = project(x1)
 
   input_tensor2 = Input(shape=(max_seq_len,))
   x2 = embed(input_tensor2)
   x2 = average(x2)
+  x2 = project(x2)
 
   x = concatenate([x1, x2], axis=-1)
-  x = Dense(cfg.getint('dan', 'hidden'), activation='relu', name='DL')(x)
+  x = Dense(cfg.getint('dan', 'hidden'), activation='relu')(x)
 
   output_tensor = Dense(1, activation='sigmoid')(x)
 
