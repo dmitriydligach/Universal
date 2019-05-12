@@ -139,10 +139,17 @@ def main():
     x1, x2, y, test_size=cfg.getfloat('args', 'test_size'))
 
   model = get_model_concat(len(dp.tokenizer.word_index) + 1, x1.shape[1])
+
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
                 metrics=['accuracy'])
-  callback = ModelCheckpoint(cfg.get('data', 'checkpt_dir') + 'model.h5')
+
+  # save the model after every epoch
+  callback = ModelCheckpoint(
+    cfg.get('data', 'model_dir') + 'model.h5',
+    verbose=1,
+    save_best_only=True)
+
   model.fit([train_x1, train_x2],
             train_y,
             validation_data=([val_x1, val_x2], val_y),
@@ -150,7 +157,13 @@ def main():
             batch_size=cfg.getint('dan', 'batch'),
             validation_split=0.0,
             callbacks=[callback])
-  model.save(cfg.get('data', 'model_dir') + 'model.h5')
+
+  # for now best model saved after each epoch
+  # model.save(cfg.get('data', 'model_dir') + 'model.h5')
+
+  # do we need to evaluate?
+  if cfg.getfloat('args', 'test_size') == 0:
+    exit()
 
   probs = model.predict([val_x1, val_x2])
   predictions = (probs > 0.5).astype(int)
