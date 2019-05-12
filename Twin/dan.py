@@ -158,11 +158,9 @@ def main():
             validation_split=0.0,
             callbacks=[callback])
 
-  # for now best model saved after each epoch
-  # model.save(cfg.get('data', 'model_dir') + 'model.h5')
-
-  # do we need to evaluate?
+  # are we training the best model?
   if cfg.getfloat('args', 'test_size') == 0:
+    model.save(cfg.get('data', 'model_dir') + 'model.h5')
     exit()
 
   probs = model.predict([val_x1, val_x2])
