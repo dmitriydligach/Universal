@@ -56,14 +56,14 @@ class DatasetProvider:
     x1 = pad_sequences(x1, maxlen=self.max_seq_len)
     x2 = pad_sequences(x2, maxlen=self.max_seq_len)
 
-    # make negative examples by pairing x1 with permuted x2
-    x1 = numpy.concatenate((x1, x1))
-    x2 = numpy.concatenate((x2, numpy.random.permutation(x2)))
-
     # twice the size of x1 with  half as 1s and the rest 0s
     y = numpy.concatenate((
       numpy.ones(x1.shape[0], dtype='int'),
       numpy.zeros(x1.shape[0], dtype='int')))
+      
+    # make negative examples by pairing x1 with permuted x2
+    x1 = numpy.concatenate((x1, x1))
+    x2 = numpy.concatenate((x2, numpy.random.permutation(x2)))
 
     return x1, x2, y
 

@@ -40,7 +40,7 @@ from keras.callbacks import Callback
 from keras.utils import plot_model
 from keras.callbacks import ModelCheckpoint
 
-import dataset_split
+import dataset_separate as dataset
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -123,12 +123,11 @@ def main():
 
   base = os.environ['DATA_ROOT']
 
-  dp = dataset_split.DatasetProvider(
+  dp = dataset.DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
     cfg.getint('args', 'max_seq_len'),
-    cfg.get('args', 'n_files'),
-    cfg.getfloat('args', 'split'))
+    cfg.get('args', 'n_files'))
   x1, x2, y = dp.load()
 
   print('x1 shape:', x1.shape)
