@@ -28,7 +28,7 @@ class DatasetProvider:
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
 
-  def targets(self, num_cuis=1000):
+  def targets(self, num_cuis=500):
     """Build prediction target list"""
 
     # TODO: remove negated cuis?
@@ -42,7 +42,8 @@ class DatasetProvider:
 
     tokenizer.fit_on_texts(texts)
     counts = sorted(
-      tokenizer.word_counts.items(),
+      # tokenizer.word_counts.items(),
+      tokenizer.word_docs.items(),
       key=operator.itemgetter(1),
       reverse=True)
 
@@ -70,9 +71,8 @@ class DatasetProvider:
       x2_tokens = set(open(disch_file).read().split())
 
       x2_tokens = x2_tokens.intersection(target_set)
-      print(len(x2_tokens))
       if len(x2_tokens) == 0:
-        print('such empty')
+        print('wow such empty')
         continue
 
       x1.append(' '.join(x1_tokens))
