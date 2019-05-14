@@ -2,7 +2,7 @@
 
 import sys
 sys.dont_write_bytecode = True
-import os, shutil, random, numpy, pickle, glob
+import os, shutil, random, numpy, pickle, glob, operator
 from configparser import ConfigParser
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -28,25 +28,58 @@ class DatasetProvider:
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
 
+  def targets(self, num_cuis=1000):
+    """Build prediction target list"""
+
+    # TODO: remove negated cuis?
+    # tokenizer for discharge summaries
+    tokenizer = Tokenizer(lower=False)
+
+    texts = []
+    discharge_files = self.train_dir + '*_discharge.txt'
+    for disch_file in glob.glob(discharge_files)[:self.n_files]:
+      texts.append(open(disch_file).read())
+
+    tokenizer.fit_on_texts(texts)
+    counts = sorted(
+      tokenizer.word_counts.items(),
+      key=operator.itemgetter(1),
+      reverse=True)
+
+    target_set = set()
+    for cui, count in counts[:num_cuis]:
+      target_set.add(cui)
+
+    return target_set
+
   def load(self):
     """Make x and y"""
 
     x1 = [] # to turn into a np array (n_docs, max_seq_len)
     x2 = [] # to turn into a np array (n_docs, max_seq_len)
 
-    discharge_files = self.train_dir + '*_discharge.txt'
+    target_set = self.targets()
+    disch_file_pattern = self.train_dir + '*_discharge.txt'
+    for disch_file in glob.glob(disch_file_pattern)[:self.n_files]:
 
-    for disch_file in glob.glob(discharge_files)[:self.n_files]:
       rest_file = disch_file.split('_')[0] + '_rest.txt'
-      if(not os.path.exists(rest_file)):
+      if not os.path.exists(rest_file):
         continue
 
       x1_tokens = set(open(rest_file).read().split())
       x2_tokens = set(open(disch_file).read().split())
+
+      x2_tokens = x2_tokens.intersection(target_set)
+      print(len(x2_tokens))
+      if len(x2_tokens) == 0:
+        print('such empty')
+        continue
+
       x1.append(' '.join(x1_tokens))
       x2.append(' '.join(x2_tokens))
 
     self.tokenizer.fit_on_texts(x1 + x2)
+
     pickle_file = open('Model/tokenizer.p', 'wb')
     pickle.dump(self.tokenizer, pickle_file)
 
@@ -60,7 +93,7 @@ class DatasetProvider:
     y = numpy.concatenate((
       numpy.ones(x1.shape[0], dtype='int'),
       numpy.zeros(x1.shape[0], dtype='int')))
-      
+
     # make negative examples by pairing x1 with permuted x2
     x1 = numpy.concatenate((x1, x1))
     x2 = numpy.concatenate((x2, numpy.random.permutation(x2)))
@@ -78,9 +111,11 @@ if __name__ == "__main__":
     cfg.get('data', 'model_dir'),
     cfg.getint('args', 'max_seq_len'),
     cfg.get('args', 'n_files'))
-  x1, x2, y = dp.load()
 
-  print('x1.shape:', x1.shape)
-  print('x2.shape:', x2.shape)
-  print('y.shape:', y.shape)
-  print('y:', y)
+  dp.targets()
+
+  # x1, x2, y = dp.load()
+  # print('x1.shape:', x1.shape)
+  # print('x2.shape:', x2.shape)
+  # print('y.shape:', y.shape)
+  # print('y:', y)
