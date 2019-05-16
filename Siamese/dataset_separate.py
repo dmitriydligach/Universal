@@ -15,7 +15,8 @@ class DatasetProvider:
     train_dir,
     model_dir,
     max_seq_len,
-    n_files):
+    n_files,
+    n_cuis):
     """Constructor"""
 
     self.tokenizer = Tokenizer(oov_token='oov_token')
@@ -23,12 +24,13 @@ class DatasetProvider:
     self.train_dir = train_dir
     self.max_seq_len = max_seq_len
     self.n_files = None if n_files == 'all' else int(n_files)
+    self.n_cuis = None if n_cuis == 'all' else int(n_cuis)
 
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
 
-  def targets(self, num_cuis=500):
+  def targets(self):
     """Build prediction target list"""
 
     # TODO: remove negated cuis?
@@ -48,7 +50,7 @@ class DatasetProvider:
       reverse=True)
 
     target_set = set()
-    for cui, count in counts[:num_cuis]:
+    for cui, count in counts[:self.n_cuis]:
       target_set.add(cui)
 
     return target_set
