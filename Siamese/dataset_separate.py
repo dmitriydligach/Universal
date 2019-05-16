@@ -44,8 +44,8 @@ class DatasetProvider:
 
     tokenizer.fit_on_texts(texts)
     counts = sorted(
-      # tokenizer.word_counts.items(),
-      tokenizer.word_docs.items(),
+      tokenizer.word_counts.items(),
+      # tokenizer.word_docs.items(),
       key=operator.itemgetter(1),
       reverse=True)
 
