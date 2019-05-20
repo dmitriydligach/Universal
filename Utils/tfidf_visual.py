@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
 
-import sys, numpy, operator, os, glob
+import sys, numpy, operator, os, glob, pickle
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-corpus = '/Users/Dima/Loyola/Data/MimicIII/Admissions/Text/'
+corpus = '/Users/Dima/Loyola/Data/MimicIII/Admissions/Cuis/'
+vectorizer_pickle = 'Model/vectorizer.p'
 
-max_files = 10000
+max_files = None
 top_tokens = 50
 
 def show_top_tokens(train_files, target_file):
   """Vectorize and print"""
 
-  vectorizer = TfidfVectorizer(
-    input='filename',
-    ngram_range=(1,1),
-    stop_words='english')
-  vectorizer.fit(train_files)
+  if not os.path.isfile(vectorizer_pickle):
+    vectorizer = TfidfVectorizer(
+      input='filename',
+      ngram_range=(1,1),
+      stop_words='english')
+    vectorizer.fit(train_files)
+    pickle_file = open(vectorizer_pickle, 'wb')
+    pickle.dump(vectorizer, pickle_file)
+  else:
+    pkl = open(vectorizer_pickle, 'rb')
+    vectorizer = pickle.load(pkl)
 
   matrix = vectorizer.transform(target_file).toarray()
 
