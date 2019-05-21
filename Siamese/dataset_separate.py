@@ -40,7 +40,7 @@ class DatasetProvider:
     texts = []
     discharge_files = self.train_dir + '*_discharge.txt'
     for disch_file in glob.glob(discharge_files)[:self.n_files]:
-      texts.append(open(disch_file).read())
+      texts.append(open(disch_file).read().replace('n', ''))
 
     tokenizer.fit_on_texts(texts)
     counts = sorted(
@@ -69,8 +69,8 @@ class DatasetProvider:
       if not os.path.exists(rest_file):
         continue
 
-      x1_tokens = set(open(rest_file).read().split())
-      x2_tokens = set(open(disch_file).read().split())
+      x1_tokens = set(open(rest_file).read().replace('n', '').split())
+      x2_tokens = set(open(disch_file).read().replace('n', '').split())
 
       x2_tokens = x2_tokens.intersection(target_set)
       if len(x2_tokens) == 0:
