@@ -42,7 +42,9 @@ class Model:
     """Return vectors for items in alphabet"""
 
     average = self.average_words(list(alphabet.keys()))
-    vecs = np.zeros((len(alphabet), self.dimensions))
+
+    # keras tokenizer reserves index 0 for who knows what
+    vecs = np.zeros((len(alphabet)+1, self.dimensions)) 
 
     oov_count = 0
     for word, index in list(alphabet.items()):
