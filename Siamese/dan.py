@@ -41,6 +41,7 @@ from keras.utils import plot_model
 from keras.callbacks import ModelCheckpoint
 
 import dataset_separate as dataset
+import word2vec
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -48,13 +49,14 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def get_model_dot(vocabulary_size, max_seq_len):
+def get_model_dot(vocabulary_size, max_seq_len, init_vectors):
   """Model definition"""
 
   embed = Embedding(
     input_dim=vocabulary_size,
     output_dim=cfg.getint('dan', 'emb_dim'),
     input_length=max_seq_len,
+    weights=init_vectors,
     name='EL')
   average = GlobalAveragePooling1D(name='AL')
   project = Dense(
@@ -82,13 +84,14 @@ def get_model_dot(vocabulary_size, max_seq_len):
 
   return model
 
-def get_model_concat(vocabulary_size, max_seq_len):
+def get_model_concat(vocabulary_size, max_seq_len, init_vectors):
   """Model definition"""
 
   embed = Embedding(
     input_dim=vocabulary_size,
     output_dim=cfg.getint('dan', 'emb_dim'),
     input_length=max_seq_len,
+    weights=init_vectors,
     name='EL')
   average = GlobalAveragePooling1D(name='AL')
   project = Dense(
@@ -138,7 +141,17 @@ def main():
   train_x1, val_x1, train_x2, val_x2, train_y, val_y = train_test_split(
     x1, x2, y, test_size=cfg.getfloat('args', 'test_size'))
 
-  model = get_model_dot(len(dp.tokenizer.word_index) + 1, x1.shape[1])
+  # TODO: figure out what to do about negated cuis
+  init_vectors = None
+  if cfg.has_option('data', 'embed'):
+    embed_file = os.path.join(base, cfg.get('data', 'embed'))
+    w2v = word2vec.Model(embed_file, verbose=True)
+    init_vectors = [w2v.select_vectors(dp.tokenizer.word_index)]
+
+  model = get_model_dot(
+    len(dp.tokenizer.word_index)+1,
+    x1.shape[1],
+    init_vectors)
 
   model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',

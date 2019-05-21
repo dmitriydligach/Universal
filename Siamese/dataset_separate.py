@@ -19,7 +19,7 @@ class DatasetProvider:
     n_cuis):
     """Constructor"""
 
-    self.tokenizer = Tokenizer(oov_token='oov_token')
+    self.tokenizer = Tokenizer(oov_token='oovtok', lower=False)
 
     self.train_dir = train_dir
     self.max_seq_len = max_seq_len
