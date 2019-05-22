@@ -20,7 +20,7 @@ class DatasetProvider:
                judgement,
                tokenizer_pickle,
                max_seq_len):
-    """Index words by frequency in a file"""
+    """Constructor"""
 
     self.corpus_path = corpus_path
     self.annot_xml = annot_xml
@@ -79,7 +79,7 @@ class DatasetProvider:
     """Convert examples into lists of indices for keras"""
 
     x = [] # to turn into a np array (n_docs, max_seq_len)
-    y = []  # int labels
+    y = [] # int labels
 
     # document id -> label mapping
     doc2label = i2b2.parse_standoff(
@@ -100,7 +100,7 @@ class DatasetProvider:
       else:
         continue
 
-      tokens = open(file_path).read().split()
+      tokens = open(file_path).read().replace('n', '').split()
       x.append(' '.join(set(tokens)))
 
     x = self.tokenizer.texts_to_sequences(x)

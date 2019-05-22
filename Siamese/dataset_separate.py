@@ -31,16 +31,20 @@ class DatasetProvider:
     os.mkdir(model_dir)
 
   def targets(self):
-    """Build prediction target list"""
+    """Look at discharge summaries and figure out what to predict"""
 
-    # TODO: remove negated cuis?
+    # TODO: one path to allow filtering of CUIs based on frequencies
+    # for both rest and discharge summaries is to tokenize the entire
+    # corpus here and make one set for targets and one for the rest
+
     # tokenizer for discharge summaries
     tokenizer = Tokenizer(lower=False)
 
     texts = []
     discharge_files = self.train_dir + '*_discharge.txt'
     for disch_file in glob.glob(discharge_files)[:self.n_files]:
-      texts.append(open(disch_file).read().replace('n', ''))
+      text = open(disch_file).read().replace('n', '')
+      texts.append(text)
 
     tokenizer.fit_on_texts(texts)
     counts = sorted(
@@ -69,8 +73,11 @@ class DatasetProvider:
       if not os.path.exists(rest_file):
         continue
 
-      x1_tokens = set(open(rest_file).read().replace('n', '').split())
-      x2_tokens = set(open(disch_file).read().replace('n', '').split())
+      x1_text = open(rest_file).read().replace('n', '')
+      x2_text = open(disch_file).read().replace('n', '')
+
+      x1_tokens = set(x1_text.split())
+      x2_tokens = set(x2_text.split())
 
       x2_tokens = x2_tokens.intersection(target_set)
       if len(x2_tokens) == 0:
