@@ -33,7 +33,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.models import Model
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.embeddings import Embedding
-from keras.layers import GlobalAveragePooling1D
+from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import concatenate, dot
 from keras.models import load_model
 from keras.callbacks import Callback
@@ -137,8 +137,8 @@ def get_model_concat_no_sharing(vocabulary_size, max_seq_len, init_vectors):
     weights=init_vectors,
     name='EL2')
 
-  average1 = GlobalAveragePooling1D(name='AL1')
-  average2 = GlobalAveragePooling1D(name='AL2')
+  max1 = GlobalMaxPooling1D(name='AL1')
+  max2 = GlobalMaxPooling1D(name='AL2')
 
   project1 = Dense(
     cfg.getint('dan', 'hidden'),
@@ -151,12 +151,12 @@ def get_model_concat_no_sharing(vocabulary_size, max_seq_len, init_vectors):
 
   input_tensor1 = Input(shape=(max_seq_len,))
   x1 = embed1(input_tensor1)
-  x1 = average1(x1)
+  x1 = max1(x1)
   x1 = project1(x1)
 
   input_tensor2 = Input(shape=(max_seq_len,))
   x2 = embed2(input_tensor2)
-  x2 = average2(x2)
+  x2 = max2(x2)
   x2 = project2(x2)
 
   x = concatenate([x1, x2], axis=-1)
