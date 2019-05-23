@@ -121,6 +121,56 @@ def get_model_concat(vocabulary_size, max_seq_len, init_vectors):
 
   return model
 
+def get_model_concat_no_sharing(vocabulary_size, max_seq_len, init_vectors):
+  """Model definition"""
+
+  embed1 = Embedding(
+    input_dim=vocabulary_size,
+    output_dim=cfg.getint('dan', 'emb_dim'),
+    input_length=max_seq_len,
+    weights=init_vectors,
+    name='EL1')
+  embed2 = Embedding(
+    input_dim=vocabulary_size,
+    output_dim=cfg.getint('dan', 'emb_dim'),
+    input_length=max_seq_len,
+    weights=init_vectors,
+    name='EL2')
+
+  average1 = GlobalAveragePooling1D(name='AL1')
+  average2 = GlobalAveragePooling1D(name='AL2')
+
+  project1 = Dense(
+    cfg.getint('dan', 'hidden'),
+    activation='relu',
+    name='DL1')
+  project2 = Dense(
+    cfg.getint('dan', 'hidden'),
+    activation='relu',
+    name='DL2')
+
+  input_tensor1 = Input(shape=(max_seq_len,))
+  x1 = embed1(input_tensor1)
+  x1 = average1(x1)
+  x1 = project1(x1)
+
+  input_tensor2 = Input(shape=(max_seq_len,))
+  x2 = embed2(input_tensor2)
+  x2 = average2(x2)
+  x2 = project2(x2)
+
+  x = concatenate([x1, x2], axis=-1)
+  x = Dense(cfg.getint('dan', 'hidden'), activation='relu')(x)
+
+  output_tensor = Dense(1, activation='sigmoid')(x)
+
+  model = Model([input_tensor1, input_tensor2], output_tensor)
+
+  plot_model(model, show_shapes=True, to_file='Model/model.png')
+  model.summary()
+
+  return model
+
 def main():
   """Driver function"""
 
@@ -148,7 +198,7 @@ def main():
     w2v = word2vec.Model(embed_file, verbose=True)
     init_vectors = [w2v.select_vectors(dp.tokenizer.word_index)]
 
-  model = get_model_dot(
+  model = get_model_concat_no_sharing(
     len(dp.tokenizer.word_index)+1,
     x1.shape[1],
     init_vectors)
