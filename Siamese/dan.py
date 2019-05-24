@@ -33,7 +33,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.models import Model
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.embeddings import Embedding
-from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
+from keras.layers import GlobalAveragePooling1D
 from keras.layers import concatenate, dot
 from keras.models import load_model
 from keras.callbacks import Callback
