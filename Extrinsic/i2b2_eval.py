@@ -80,7 +80,7 @@ def data_dense(disease, judgement):
   interm_layer_model = Model(
     inputs=model.input,
     outputs=model.get_layer(cfg.get('data', 'rep_layer')).get_output_at(0))
-  maxlen = model.get_layer(name='EL').get_config()['input_length']
+  maxlen = model.get_layer(name='EL1').get_config()['input_length']
 
   # load training data first
   train_data_provider = DatasetProvider(
