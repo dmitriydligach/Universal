@@ -160,7 +160,7 @@ def get_model_concat_no_sharing(vocabulary_size, max_seq_len, init_vectors):
   x2 = project2(x2)
 
   x = concatenate([x1, x2], axis=-1)
-  x = Dense(cfg.getint('dan', 'hidden'), activation='relu')(x)
+  x = Dense(cfg.getint('dan', 'hidden'), activation='relu', name='DL')(x)
 
   output_tensor = Dense(1, activation='sigmoid')(x)
 
