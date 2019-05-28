@@ -40,8 +40,7 @@ from keras.callbacks import Callback
 from keras.utils import plot_model
 from keras.callbacks import ModelCheckpoint
 
-import dataset_separate as dataset
-import word2vec
+import dataset, word2vec
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
