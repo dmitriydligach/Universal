@@ -2,15 +2,10 @@
 
 import sys
 sys.dont_write_bytecode = True
-
 import os, shutil, random, numpy, pickle, glob, operator
 from configparser import ConfigParser
-
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-from scipy.sparse import find
 
 class DatasetProvider:
   """Make x and y from raw data"""
@@ -21,78 +16,19 @@ class DatasetProvider:
     model_dir,
     max_seq_len,
     n_files,
-    n_cuis,
-    tokenizer_pickle='tokenizer.p',
-    vectorizer_pickle='vectorizer.p',
-    target_pickle='target.p'):
+    n_cuis):
     """Constructor"""
 
-    # if os.path.isdir(model_dir):
-    #   shutil.rmtree(model_dir)
-    # os.mkdir(model_dir)
-
-    self.tokenizer_pickle = model_dir + tokenizer_pickle
-    self.vectorizer_pickle = model_dir + vectorizer_pickle
-    self.target_pickle = model_dir + target_pickle
+    self.tokenizer = Tokenizer(oov_token='oovtok', lower=False)
 
     self.train_dir = train_dir
     self.max_seq_len = max_seq_len
     self.n_files = None if n_files == 'all' else int(n_files)
     self.n_cuis = None if n_cuis == 'all' else int(n_cuis)
 
-    self.tokenizer = Tokenizer(oov_token='oovtok', lower=False)
-
-    self.get_vectorizer()
-    self.get_targets()
-
-  def get_vectorizer(self):
-    """Train or load a tfidf vectorizer"""
-
-    if not os.path.isfile(self.vectorizer_pickle):
-      train_files = glob.glob(self.train_dir + '*.txt')
-
-      self.vectorizer = TfidfVectorizer(
-        input='filename',
-        ngram_range=(1,1))
-      self.vectorizer.fit(train_files)
-
-      print('saving vectorizer:', self.vectorizer_pickle)
-      pickle_file = open(self.vectorizer_pickle, 'wb')
-      pickle.dump(vectorizer, pickle_file)
-
-    else:
-      print('loading vectorizer:', self.vectorizer_pickle)
-      pl = open(self.vectorizer_pickle, 'rb')
-      self.vectorizer = pickle.load(pl)
-
-  def get_targets(self):
-    """Rank tokens in all files by tfidf"""
-
-    doc2target = {} # document -> list of target tokens
-
-    disch_files = glob.glob(self.train_dir + '*_discharge.txt')
-    doc_term_matrix = self.vectorizer.transform(disch_files).toarray()
-    features = self.vectorizer.get_feature_names()
-
-    for row_n in range(doc_term_matrix.shape[0]):
-
-      token2score = {}
-      for dim, score in enumerate(doc_term_matrix[row_n, :]):
-        if score > 0:
-          token2score[features[dim]] = score
-
-      ranked = sorted(
-        token2score.items(),
-        key=operator.itemgetter(1),
-        reverse=True)
-
-      doc2target[disch_files[row_n]] = []
-      for token, score in ranked[:self.n_cuis]:
-        doc2target[disch_files[row_n]].append(token)
-
-    print('saving targets:', self.target_pickle)
-    pickle_file = open(self.target_pickle, 'wb')
-    pickle.dump(doc2target, pickle_file)
+    if os.path.isdir(model_dir):
+      shutil.rmtree(model_dir)
+    os.mkdir(model_dir)
 
   def targets(self):
     """Look at discharge summaries and figure out what to predict"""
@@ -183,8 +119,9 @@ if __name__ == "__main__":
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
     cfg.getint('args', 'max_seq_len'),
-    cfg.get('args', 'n_files'),
-    cfg.get('args', 'n_cuis'))
+    cfg.get('args', 'n_files'))
+
+  dp.targets()
 
   # x1, x2, y = dp.load()
   # print('x1.shape:', x1.shape)
