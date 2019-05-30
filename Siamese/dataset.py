@@ -7,6 +7,16 @@ from configparser import ConfigParser
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
+def read_tokens(file_path, n_tokens):
+  """Read n tokens from specified file"""
+
+  tokens = []
+  for line in open(file_path).readlines()[:n_tokens]:
+    token, score = line.split(' ')
+    tokens.append(token)
+
+  return ' '.join(set(tokens))
+
 class DatasetProvider:
   """Make x and y from raw data"""
 
@@ -16,48 +26,24 @@ class DatasetProvider:
     model_dir,
     max_seq_len,
     n_files,
-    n_cuis):
+    n_x1_cuis,
+    n_x2_cuis):
     """Constructor"""
 
     self.tokenizer = Tokenizer(oov_token='oovtok', lower=False)
 
     self.train_dir = train_dir
     self.max_seq_len = max_seq_len
+
     self.n_files = None if n_files == 'all' else int(n_files)
-    self.n_cuis = None if n_cuis == 'all' else int(n_cuis)
+    self.n_x1_cuis = None if n_x1_cuis == 'all' else int(n_x1_cuis)
+    self.n_x2_cuis = None if n_x2_cuis == 'all' else int(n_x2_cuis)
+
+    print('reading cuis:', self.n_x1_cuis, self.n_x2_cuis)
 
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
-
-  def targets(self):
-    """Look at discharge summaries and figure out what to predict"""
-
-    # TODO: one path to allow filtering of CUIs based on frequencies
-    # for both rest and discharge summaries is to tokenize the entire
-    # corpus here and make one set for targets and one for the rest
-
-    # tokenizer for discharge summaries
-    tokenizer = Tokenizer(lower=False)
-
-    texts = []
-    discharge_files = self.train_dir + '*_discharge.txt'
-    for disch_file in glob.glob(discharge_files)[:self.n_files]:
-      text = open(disch_file).read().replace('n', '')
-      texts.append(text)
-
-    tokenizer.fit_on_texts(texts)
-    counts = sorted(
-      tokenizer.word_counts.items(),
-      # tokenizer.word_docs.items(),
-      key=operator.itemgetter(1),
-      reverse=True)
-
-    target_set = set()
-    for cui, count in counts[:self.n_cuis]:
-      target_set.add(cui)
-
-    return target_set
 
   def load(self):
     """Make x and y"""
@@ -65,27 +51,15 @@ class DatasetProvider:
     x1 = [] # to turn into a np array (n_docs, max_seq_len)
     x2 = [] # to turn into a np array (n_docs, max_seq_len)
 
-    target_set = self.targets()
     disch_file_pattern = self.train_dir + '*_discharge.txt'
-    for disch_file in glob.glob(disch_file_pattern)[:self.n_files]:
 
+    for disch_file in glob.glob(disch_file_pattern)[:self.n_files]:
       rest_file = disch_file.split('_')[0] + '_rest.txt'
       if not os.path.exists(rest_file):
         continue
 
-      x1_text = open(rest_file).read().replace('n', '')
-      x2_text = open(disch_file).read().replace('n', '')
-
-      x1_tokens = set(x1_text.split())
-      x2_tokens = set(x2_text.split())
-
-      x2_tokens = x2_tokens.intersection(target_set)
-      if len(x2_tokens) == 0:
-        print('wow such empty')
-        continue
-
-      x1.append(' '.join(x1_tokens))
-      x2.append(' '.join(x2_tokens))
+      x1.append(read_tokens(rest_file, n_tokens=self.n_x1_cuis))
+      x2.append(read_tokens(disch_file, n_tokens=self.n_x2_cuis))
 
     self.tokenizer.fit_on_texts(x1 + x2)
 

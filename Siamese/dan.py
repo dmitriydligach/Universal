@@ -169,7 +169,8 @@ def main():
     cfg.get('data', 'model_dir'),
     cfg.getint('args', 'max_seq_len'),
     cfg.get('args', 'n_files'),
-    cfg.get('args', 'n_cuis'))
+    cfg.get('args', 'n_x1_cuis'),
+    cfg.get('args', 'n_x2_cuis'))
   x1, x2, y = dp.load()
 
   print('x1 shape:', x1.shape)
