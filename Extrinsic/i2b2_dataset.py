@@ -100,7 +100,8 @@ class DatasetProvider:
       else:
         continue
 
-      tokens = open(file_path).read().replace('n', '').split()
+      # tokens = open(file_path).read().replace('n', '').split()
+      tokens = open(file_path).read().split()
       x.append(' '.join(set(tokens)))
 
     x = self.tokenizer.texts_to_sequences(x)

@@ -39,8 +39,6 @@ class DatasetProvider:
     self.n_x1_cuis = None if n_x1_cuis == 'all' else int(n_x1_cuis)
     self.n_x2_cuis = None if n_x2_cuis == 'all' else int(n_x2_cuis)
 
-    print('reading cuis:', self.n_x1_cuis, self.n_x2_cuis)
-
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
