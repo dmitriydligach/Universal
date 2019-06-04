@@ -7,7 +7,7 @@ from configparser import ConfigParser
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
-def read_tokens(file_path, n_tokens, dropout=None):
+def read_tokens(file_path, n_tokens, dropout):
   """Read n tokens from specified file"""
 
   tokens = []
@@ -60,8 +60,8 @@ class DatasetProvider:
       if not os.path.exists(rest_file):
         continue
 
-      x1.append(read_tokens(rest_file, n_tokens=self.n_x1_cuis))
-      x2.append(read_tokens(disch_file, n_tokens=self.n_x2_cuis))
+      x1.append(read_tokens(rest_file, self.n_x1_cuis, None))
+      x2.append(read_tokens(disch_file, self.n_x2_cuis, None))
 
     self.tokenizer.fit_on_texts(x1 + x2)
 
