@@ -7,13 +7,17 @@ from configparser import ConfigParser
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
-def read_tokens(file_path, n_tokens):
+def read_tokens(file_path, n_tokens, dropout=None):
   """Read n tokens from specified file"""
 
   tokens = []
   for line in open(file_path).readlines()[:n_tokens]:
     token, score = line.split(' ')
     tokens.append(token)
+
+  if dropout is not None:
+    tokens_to_keep = round(len(tokens) * (1 - dropout))
+    tokens = random.sample(tokens, tokens_to_keep)
 
   return ' '.join(set(tokens))
 
