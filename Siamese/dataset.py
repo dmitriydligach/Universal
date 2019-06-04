@@ -60,8 +60,11 @@ class DatasetProvider:
       if not os.path.exists(rest_file):
         continue
 
-      x1.append(read_tokens(rest_file, self.n_x1_cuis, None))
-      x2.append(read_tokens(disch_file, self.n_x2_cuis, None))
+      x1_token_set = read_tokens(rest_file, self.n_x1_cuis, None)
+      x2_token_set = read_tokens(disch_file, self.n_x2_cuis, None)
+
+      x1.append(x1_token_set)
+      x2.append(x2_token_set)
 
     self.tokenizer.fit_on_texts(x1 + x2)
 
