@@ -28,7 +28,6 @@ class DatasetProvider:
     self,
     train_dir,
     model_dir,
-    max_seq_len,
     n_x_cuis,
     n_y_cuis,
     min_examples_per_targ):
@@ -40,7 +39,6 @@ class DatasetProvider:
     self.targ2int = {}  # target -> index
 
     self.train_dir = train_dir
-    self.max_seq_len = max_seq_len
     self.min_examples_per_targ = min_examples_per_targ
 
     self.n_x_cuis = None if n_x_cuis == 'all' else int(n_x_cuis)
@@ -106,7 +104,8 @@ class DatasetProvider:
     pickle.dump(self.tokenizer, pickle_file)
 
     x = self.tokenizer.texts_to_sequences(x)
-    x = pad_sequences(x, maxlen=self.max_seq_len)
+    max_seq_len = max(len(seq) for seq in x)
+    x = pad_sequences(x, maxlen=max_seq_len)
 
     return x, numpy.array(y)
 
@@ -119,11 +118,11 @@ if __name__ == "__main__":
   dp = DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
-    cfg.getint('args', 'max_seq_len'),
     cfg.get('args', 'n_x_cuis'),
     cfg.get('args', 'n_y_cuis'),
     cfg.getfloat('args', 'min_examples_per_targ'))
 
   x, y = dp.load()
+  print('max_seq_len:', dp.max_seq_len)
   print('x:', x.shape)
   print('y:', y.shape)

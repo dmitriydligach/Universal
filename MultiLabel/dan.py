@@ -30,7 +30,7 @@ from keras import Input
 from keras.utils.np_utils import to_categorical
 from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
-from keras.models import Model
+from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.embeddings import Embedding
 from keras.layers import GlobalAveragePooling1D
@@ -48,111 +48,24 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def get_model_dot(vocabulary_size, max_seq_len, init_vectors):
-  """Model definition"""
+def get_model(vocabulary_size, max_seq_len, n_targets, init_vectors):
+  """Define model"""
 
-  embed = Embedding(
-    input_dim=vocabulary_size,
-    output_dim=cfg.getint('dan', 'emb_dim'),
-    input_length=max_seq_len,
-    weights=init_vectors,
-    name='EL')
-  average = GlobalAveragePooling1D(name='AL')
-  project = Dense(
-    cfg.getint('dan', 'hidden'),
-    activation='relu',
-    name='DL')
+  model = Sequential()
+  model.add(Embedding(input_dim=vocabulary_size,
+                      output_dim=cfg.getint('dan', 'emb_dim'),
+                      input_length=max_seq_len,
+                      weights=init_vectors,
+                      name='EL'))
+  model.add(GlobalAveragePooling1D(name='AL'))
 
-  input_tensor1 = Input(shape=(max_seq_len,))
-  x1 = embed(input_tensor1)
-  x1 = average(x1)
-  x1 = project(x1)
+  model.add(Dense(cfg.getint('dan', 'hidden'), name='HL'))
+  model.add(Activation(cfg.get('dan', 'activation')))
 
-  input_tensor2 = Input(shape=(max_seq_len,))
-  x2 = embed(input_tensor2)
-  x2 = average(x2)
-  x2 = project(x2)
+  model.add(Dropout(cfg.getfloat('dan', 'dropout')))
 
-  x = dot([x1, x2], axes=-1)
-  output_tensor = Dense(1, activation='sigmoid')(x)
-
-  model = Model([input_tensor1, input_tensor2], output_tensor)
-
-  plot_model(model, show_shapes=True, to_file='Model/model.png')
-  model.summary()
-
-  return model
-
-def get_model_concat(vocabulary_size, max_seq_len, init_vectors):
-  """Model definition"""
-
-  embed = Embedding(
-    input_dim=vocabulary_size,
-    output_dim=cfg.getint('dan', 'emb_dim'),
-    input_length=max_seq_len,
-    weights=init_vectors,
-    name='EL')
-  average = GlobalAveragePooling1D(name='AL')
-  project = Dense(
-    cfg.getint('dan', 'hidden'),
-    activation='relu',
-    name='DL')
-
-  input_tensor1 = Input(shape=(max_seq_len,))
-  x1 = embed(input_tensor1)
-  x1 = average(x1)
-  x1 = project(x1)
-
-  input_tensor2 = Input(shape=(max_seq_len,))
-  x2 = embed(input_tensor2)
-  x2 = average(x2)
-  x2 = project(x2)
-
-  x = concatenate([x1, x2], axis=-1)
-  x = Dense(cfg.getint('dan', 'hidden'), activation='relu')(x)
-
-  output_tensor = Dense(1, activation='sigmoid')(x)
-
-  model = Model([input_tensor1, input_tensor2], output_tensor)
-
-  plot_model(model, show_shapes=True, to_file='Model/model.png')
-  model.summary()
-
-  return model
-
-def get_model_concat_no_sharing(vocabulary_size, max_seq_len, init_vectors):
-  """Model definition"""
-
-  embed1 = Embedding(
-    input_dim=vocabulary_size,
-    output_dim=cfg.getint('dan', 'emb_dim'),
-    input_length=max_seq_len,
-    weights=init_vectors,
-    name='EL1')
-  embed2 = Embedding(
-    input_dim=vocabulary_size,
-    output_dim=cfg.getint('dan', 'emb_dim'),
-    input_length=max_seq_len,
-    weights=init_vectors,
-    name='EL2')
-
-  average1 = GlobalAveragePooling1D(name='AL1')
-  average2 = GlobalAveragePooling1D(name='AL2')
-
-  input_tensor1 = Input(shape=(max_seq_len,))
-  x1 = embed1(input_tensor1)
-  x1 = average1(x1)
-
-  input_tensor2 = Input(shape=(max_seq_len,))
-  x2 = embed2(input_tensor2)
-  x2 = average2(x2)
-
-  x = concatenate([x1, x2], axis=-1)
-  x = Dense(cfg.getint('dan', 'hidden'), activation='relu', name='DL')(x)
-
-  output_tensor = Dense(1, activation='sigmoid')(x)
-
-  model = Model([input_tensor1, input_tensor2], output_tensor)
+  model.add(Dense(n_targets))
+  model.add(Activation('sigmoid'))
 
   plot_model(model, show_shapes=True, to_file='Model/model.png')
   model.summary()
@@ -167,18 +80,16 @@ def main():
   dp = dataset.DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
-    cfg.getint('args', 'max_seq_len'),
-    cfg.get('args', 'n_files'),
-    cfg.get('args', 'n_x1_cuis'),
-    cfg.get('args', 'n_x2_cuis'))
-  x1, x2, y = dp.load()
+    cfg.get('args', 'n_x_cuis'),
+    cfg.get('args', 'n_y_cuis'),
+    cfg.getfloat('args', 'min_examples_per_targ'))
+  x, y = dp.load()
 
-  print('x1 shape:', x1.shape)
-  print('x2 shape:', x2.shape)
+  print('x shape:', x.shape)
   print('y shape:', y.shape)
 
-  train_x1, val_x1, train_x2, val_x2, train_y, val_y = train_test_split(
-    x1, x2, y, test_size=cfg.getfloat('args', 'test_size'))
+  train_x, val_x, train_y, val_y = train_test_split(
+    x, y, test_size=cfg.getfloat('args', 'test_size'))
 
   # TODO: figure out what to do about negated cuis
   init_vectors = None
@@ -187,9 +98,10 @@ def main():
     w2v = word2vec.Model(embed_file, verbose=True)
     init_vectors = [w2v.select_vectors(dp.tokenizer.word_index)]
 
-  model = get_model_concat_no_sharing(
+  model = get_model(
     len(dp.tokenizer.word_index)+1,
-    x1.shape[1],
+    x.shape[1],
+    y.shape[1],
     init_vectors)
 
   model.compile(loss='binary_crossentropy',
@@ -202,9 +114,9 @@ def main():
     verbose=1,
     save_best_only=True)
 
-  model.fit([train_x1, train_x2],
+  model.fit(train_x,
             train_y,
-            validation_data=([val_x1, val_x2], val_y),
+            validation_data=(val_x, val_y),
             epochs=cfg.getint('dan', 'epochs'),
             batch_size=cfg.getint('dan', 'batch'),
             validation_split=0.0,
@@ -215,7 +127,7 @@ def main():
     model.save(cfg.get('data', 'model_dir') + 'model.h5')
     exit()
 
-  probs = model.predict([val_x1, val_x2])
+  probs = model.predict(val_x)
   predictions = (probs > 0.5).astype(int)
   accuracy = accuracy_score(val_y, predictions)
   print('accuracy: ', accuracy)
