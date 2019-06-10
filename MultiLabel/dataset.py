@@ -46,32 +46,32 @@ class DatasetProvider:
     self.n_x_cuis = None if n_x_cuis == 'all' else int(n_x_cuis)
     self.n_y_cuis = None if n_y_cuis == 'all' else int(n_y_cuis)
 
-    self.index() # make all sort of indicies
+    self.index()
+    print('done indexing targets...')
 
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
 
   def index(self):
-    """Map encounters to targets and make target alphabet"""
+    """Process discharge summaries"""
+
+    targ_counter = collections.Counter()
 
     for disch_file in glob.glob(self.train_dir + '*_discharge.txt'):
 
-      # map encounters to targets
+      # map encounters to targets and count them
       tokens = []
       for line in open(disch_file).readlines()[:self.n_x_cuis]:
         token, score = line.split(' ')
         tokens.append(token)
 
+      targs = set(tokens)
       enc_id = disch_file.split('/')[-1].split('_')[0]
-      self.enc2targs[enc_id] = set(tokens)
-
-    # count target frequencies
-    targ_counter = collections.Counter()
-    for targs in self.enc2targs.values():
+      self.enc2targs[enc_id] = targs
       targ_counter.update(targs)
 
-    # make target alplhabet
+    # make alphabet for *frequent* targets
     index = 0
     for targ, count in targ_counter.items():
       if count > self.min_examples_per_targ:
@@ -79,23 +79,26 @@ class DatasetProvider:
         index = index + 1
 
   def load(self):
-    """Make x and y"""
+    """Process notes to make x and y"""
 
-    x = [] # (n_docs, max_seq_len)
-    y = [] # targets
+    x = [] # input documents (n_docs, max_seq_len)
+    y = [] # targets we are predicting for each input
 
     for disch_path in glob.glob(self.train_dir + '*_discharge.txt'):
 
       rest_path = disch_path.split('_')[0] + '_rest.txt'
       if not os.path.exists(rest_path):
         continue
+
       x.append(read_tokens(rest_path, self.n_x_cuis, None))
 
       targ_vec = numpy.zeros(len(self.targ2int))
       enc_id = disch_path.split('/')[-1].split('_')[0]
 
       for targ in self.enc2targs[enc_id]:
-        targ_vec[self.targ2int[targ]] = 1
+        if targ in self.targ2int:
+          targ_vec[self.targ2int[targ]] = 1
+
       y.append(targ_vec)
 
     self.tokenizer.fit_on_texts(x)
@@ -103,7 +106,7 @@ class DatasetProvider:
     pickle.dump(self.tokenizer, pickle_file)
 
     x = self.tokenizer.texts_to_sequences(x)
-    x = pad_sequences(x2, maxlen=self.max_seq_len)
+    x = pad_sequences(x, maxlen=self.max_seq_len)
 
     return x, numpy.array(y)
 
@@ -121,4 +124,6 @@ if __name__ == "__main__":
     cfg.get('args', 'n_y_cuis'),
     cfg.getfloat('args', 'min_examples_per_targ'))
 
-  dp.load()
+  x, y = dp.load()
+  print('x:', x.shape)
+  print('y:', y.shape)
