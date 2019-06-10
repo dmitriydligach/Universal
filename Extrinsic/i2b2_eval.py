@@ -80,7 +80,7 @@ def data_dense(disease, judgement):
   interm_layer_model = Model(
     inputs=model.input,
     outputs=model.get_layer(cfg.get('data', 'rep_layer')).get_output_at(0))
-  maxlen = model.get_layer(name='EL1').get_config()['input_length']
+  maxlen = model.get_layer(name='EL').get_config()['input_length']
 
   # load training data first
   train_data_provider = DatasetProvider(
@@ -94,7 +94,7 @@ def data_dense(disease, judgement):
 
   # make training vectors for target task
   print('original x_train shape:', x_train.shape)
-  x_train = interm_layer_model.predict([x_train, x_train])
+  x_train = interm_layer_model.predict(x_train)
   print('new x_train shape:', x_train.shape)
 
   # now load the test set
@@ -109,7 +109,7 @@ def data_dense(disease, judgement):
 
   # make test vectors for target task
   print('original x_test shape:', x_test.shape)
-  x_test = interm_layer_model.predict([x_test, x_test])
+  x_test = interm_layer_model.predict(x_test)
   print('new x_test shape:', x_test.shape)
 
   return x_train, y_train, x_test, y_test
