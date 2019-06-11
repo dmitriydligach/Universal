@@ -60,7 +60,7 @@ class DatasetProvider:
 
       # map encounters to targets and count them
       tokens = []
-      for line in open(disch_file).readlines()[:self.n_x_cuis]:
+      for line in open(disch_file).readlines()[:self.n_y_cuis]:
         token, score = line.split(' ')
         tokens.append(token)
 
