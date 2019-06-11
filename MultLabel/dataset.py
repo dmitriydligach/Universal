@@ -58,9 +58,9 @@ class DatasetProvider:
 
     for disch_file in glob.glob(self.train_dir + '*_discharge.txt'):
 
-      tokens = read_tokens(disch_file, self.n_y_cuis, None)
+      targs = set(read_tokens(disch_file, self.n_y_cuis, None))
       enc_id = disch_file.split('/')[-1].split('_')[0]
-      self.enc2targs[enc_id] = set(tokens)
+      self.enc2targs[enc_id] = targs
       targ_counter.update(targs)
 
     # make alphabet for *frequent* targets
