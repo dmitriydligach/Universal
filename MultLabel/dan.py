@@ -127,10 +127,21 @@ def main():
     model.save(cfg.get('data', 'model_dir') + 'model.h5')
     exit()
 
-  probs = model.predict(val_x)
-  predictions = (probs > 0.5).astype(int)
-  accuracy = accuracy_score(val_y, predictions)
-  print('accuracy: ', accuracy)
+  # probability for each class; (test size, num of classes)
+  distribution = model.predict(val_x)
+
+  # turn into an indicator matrix
+  distribution[distribution < 0.5] = 0
+  distribution[distribution >= 0.5] = 1
+
+  f1 = f1_score(val_y, distribution, average='macro')
+  p = precision_score(val_y, distribution, average='macro')
+  r = recall_score(val_y, distribution, average='macro')
+  print("\nmacro: p: %.3f - r: %.3f - f1: %.3f" % (p, r, f1))
+  f1 = f1_score(val_y, distribution, average='micro')
+  p = precision_score(val_y, distribution, average='micro')
+  r = recall_score(val_y, distribution, average='micro')
+  print("micro: p: %.3f - r: %.3f - f1: %.3f" % (p, r, f1))
 
 if __name__ == "__main__":
 
