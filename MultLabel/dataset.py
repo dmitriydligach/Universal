@@ -19,7 +19,7 @@ def read_tokens(file_path, n_tokens, dropout):
     tokens_to_keep = round(len(tokens) * (1 - dropout))
     tokens = random.sample(tokens, tokens_to_keep)
 
-  return ' '.join(set(tokens))
+  return tokens
 
 class DatasetProvider:
   """Make x and y from raw data"""
@@ -58,15 +58,9 @@ class DatasetProvider:
 
     for disch_file in glob.glob(self.train_dir + '*_discharge.txt'):
 
-      # map encounters to targets and count them
-      tokens = []
-      for line in open(disch_file).readlines()[:self.n_y_cuis]:
-        token, score = line.split(' ')
-        tokens.append(token)
-
-      targs = set(tokens)
+      tokens = read_tokens(disch_file, self.n_y_cuis, None)
       enc_id = disch_file.split('/')[-1].split('_')[0]
-      self.enc2targs[enc_id] = targs
+      self.enc2targs[enc_id] = set(tokens)
       targ_counter.update(targs)
 
     # make alphabet for *frequent* targets
@@ -88,7 +82,8 @@ class DatasetProvider:
       if not os.path.exists(rest_path):
         continue
 
-      x.append(read_tokens(rest_path, self.n_x_cuis, None))
+      tokens = read_tokens(rest_path, self.n_x_cuis, None)
+      x.append(' '.join(set(tokens)))
 
       targ_vec = numpy.zeros(len(self.targ2int))
       enc_id = disch_path.split('/')[-1].split('_')[0]
