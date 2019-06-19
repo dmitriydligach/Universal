@@ -30,21 +30,28 @@ class DatasetProvider:
     min_examples_per_targ):
     """Constructor"""
 
-    self.tokenizer = Tokenizer(oov_token='oovtok', lower=False)
+    # for converting input tokens to int sequences
+    self.tokenizer = Tokenizer(
+      num_words=None,
+      oov_token='oovtok',
+      lower=False)
 
-    self.enc2targs = {} # encounter id -> set of targets
-    self.targ2int = {}  # target -> index
+    # encounter id -> set of targets
+    self.enc2targs = {}
+
+    # target -> int index
+    self.targ2int = {}
 
     self.train_dir = train_dir
     self.targ_file = targ_file
+    self.model_dir = model_dir
     self.min_examples_per_targ = min_examples_per_targ
-
-    self.index_targets()
-    print('done indexing targets...')
 
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
+
+    self.index_targets()
 
   def index_targets(self):
     """Process medication file"""
@@ -52,24 +59,15 @@ class DatasetProvider:
     df = pandas.read_csv(self.targ_file, dtype='str')
 
     for enc, drug in zip(df['HADM_ID'], df['DRUG']):
-
-      if pandas.isnull(enc):
-        print('no adm id!')
-        continue
-      if pandas.isnull(drug):
-        print('no drug!')
-        continue
-
       if enc not in self.enc2targs:
         self.enc2targs[enc] = set()
-
-      self.enc2targs[enc].add(drug)
+      self.enc2targs[enc].add(drug.lower())
 
     targ_counter = collections.Counter()
     for targs in self.enc2targs.values():
       targ_counter.update(targs)
 
-    outfile = open('targs.txt', 'w')
+    outfile = open(os.path.join(self.model_dir, 'targs.txt'), 'w')
     for med, count in targ_counter.most_common():
       outfile.write('%s|%s\n' % (med, count))
 
@@ -88,20 +86,25 @@ class DatasetProvider:
 
     for train_file in os.listdir(self.train_dir):
 
-      tokens = read_tokens(os.path.join(self.train_dir, train_file))
-      x.append(' '.join(set(tokens)))
-
       targ_vec = numpy.zeros(len(self.targ2int))
       enc = train_file.split('.')[0]
 
       if enc not in self.enc2targs:
         continue
 
+      no_labels_for_this_file = True
       for targ in self.enc2targs[enc]:
         if targ in self.targ2int:
           targ_vec[self.targ2int[targ]] = 1
+          no_labels_for_this_file = False
+
+      if no_labels_for_this_file:
+        continue # all rare codes
 
       y.append(targ_vec)
+
+      tokens = read_tokens(os.path.join(self.train_dir, train_file))
+      x.append(' '.join(set(tokens)))
 
     self.tokenizer.fit_on_texts(x)
     pickle_file = open('Model/tokenizer.p', 'wb')
