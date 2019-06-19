@@ -79,9 +79,8 @@ def main():
 
   dp = dataset.DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
+    os.path.join(base, cfg.get('data', 'targs')),
     cfg.get('data', 'model_dir'),
-    cfg.get('args', 'n_x_cuis'),
-    cfg.get('args', 'n_y_cuis'),
     cfg.getfloat('args', 'min_examples_per_targ'))
   x, y = dp.load()
 
@@ -91,7 +90,6 @@ def main():
   train_x, val_x, train_y, val_y = train_test_split(
     x, y, test_size=cfg.getfloat('args', 'test_size'))
 
-  # TODO: figure out what to do about negated cuis
   init_vectors = None
   if cfg.has_option('data', 'embed'):
     embed_file = os.path.join(base, cfg.get('data', 'embed'))
