@@ -44,38 +44,6 @@ class DatasetProvider:
 
     return x, y
 
-  def load_old(self):
-    """Convert examples into lists of indices"""
-
-    x1 = [] # first halfs (n_docs, max_seq_len)
-    x2 = [] # second halfs (n_docs, max_seq_len)
-    y = []  # int labels
-
-    for d in os.listdir(self.corpus_path):
-      label_dir = os.path.join(self.corpus_path, d)
-
-      for f in os.listdir(label_dir):
-        y.append(self.label2int[d.lower()])
-
-        file_path = os.path.join(label_dir, f)
-        tokens = open(file_path).read().split()
-        x1_count = round(len(tokens) * 0.9)
-
-        x1_as_set = set(tokens[:x1_count]) # input
-        x2_as_set = set(tokens[x1_count:]) # targets
-        x1_as_set = x1_as_set - x2_as_set
-
-        x1.append(' '.join(x1_as_set))
-        x2.append(' '.join(x2_as_set))
-
-    x1 = self.tokenizer.texts_to_sequences(x1)
-    x2 = self.tokenizer.texts_to_sequences(x2)
-
-    x1 = pad_sequences(x1, maxlen=self.max_seq_len)
-    x2 = pad_sequences(x2, maxlen=self.max_seq_len)
-
-    return x1, x2, y
-
 if __name__ == "__main__":
 
   cfg = configparser.ConfigParser()
