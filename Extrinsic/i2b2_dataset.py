@@ -31,50 +31,6 @@ class DatasetProvider:
     pkl = open(tokenizer_pickle, 'rb')
     self.tokenizer = pickle.load(pkl)
 
-  def load_old(self):
-    """Convert examples into lists of indices for keras"""
-
-    x1 = [] # to turn into a np array (n_docs, max_seq_len)
-    x2 = [] # to turn into a np array (n_docs, max_seq_len)
-    y = []  # int labels
-
-    # document id -> label mapping
-    doc2label = i2b2.parse_standoff(
-      self.annot_xml,
-      self.disease,
-      self.judgement)
-
-    # load examples and labels
-    for f in os.listdir(self.corpus_path):
-      doc_id = f.split('.')[0]
-      file_path = os.path.join(self.corpus_path, f)
-
-      # no labels for some documents for some reason
-      if doc_id in doc2label:
-        string_label = doc2label[doc_id]
-        int_label = LABEL2INT[string_label]
-        y.append(int_label)
-      else:
-        continue
-
-      tokens = open(file_path).read().split()
-      x1_count = round(len(tokens) * 0.9)
-
-      x1_as_set = set(tokens[:x1_count]) # input
-      x2_as_set = set(tokens[x1_count:]) # targets
-      x1_as_set = x1_as_set - x2_as_set
-
-      x1.append(' '.join(x1_as_set))
-      x2.append(' '.join(x2_as_set))
-
-    x1 = self.tokenizer.texts_to_sequences(x1)
-    x2 = self.tokenizer.texts_to_sequences(x2)
-
-    x1 = pad_sequences(x1, maxlen=self.max_seq_len)
-    x2 = pad_sequences(x2, maxlen=self.max_seq_len)
-
-    return x1, x2, y
-
   def load(self):
     """Convert examples into lists of indices for keras"""
 
