@@ -30,7 +30,7 @@ from keras import Input
 from keras.utils.np_utils import to_categorical
 from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
-from keras.models import Sequential
+from keras.models import Model, Sequential
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.embeddings import Embedding
 from keras.layers import GlobalAveragePooling1D
@@ -49,6 +49,35 @@ import warnings
 warnings.warn = warn
 
 def get_model(vocabulary_size, max_seq_len, n_targets, init_vectors):
+  """Define model"""
+
+  embed = Embedding(
+    input_dim=vocabulary_size,
+    output_dim=cfg.getint('dan', 'emb_dim'),
+    input_length=max_seq_len,
+    weights=init_vectors,
+    name='EL')
+  average = GlobalAveragePooling1D(name='AL')
+  project = Dense(
+    cfg.getint('dan', 'hidden'),
+    activation=cfg.get('dan', 'activation'),
+    name='DL')
+  drop = Dropout(cfg.getfloat('dan', 'dropout'))
+
+  input_tensor = Input(shape=(max_seq_len,))
+  x = embed(input_tensor)
+  x = average(x)
+  x = project(x)
+  x = drop(x)
+  output_tensor = Dense(n_targets, activation='sigmoid')(x)
+
+  model = Model(input_tensor, output_tensor)
+  plot_model(model, show_shapes=True, to_file='Model/model.png')
+  model.summary()
+
+  return model
+
+def get_model_seq(vocabulary_size, max_seq_len, n_targets, init_vectors):
   """Define model"""
 
   model = Sequential()
