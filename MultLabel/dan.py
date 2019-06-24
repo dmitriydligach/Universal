@@ -48,8 +48,8 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def get_model(vocabulary_size, max_seq_len, n_targets, init_vectors):
-  """Define model"""
+def get_model_ampool(vocabulary_size, max_seq_len, n_targets, init_vectors):
+  """Average + max pooling model"""
 
   # define layers
   embed = Embedding(
@@ -82,8 +82,8 @@ def get_model(vocabulary_size, max_seq_len, n_targets, init_vectors):
 
   return model
 
-def get_model_fun(vocabulary_size, max_seq_len, n_targets, init_vectors):
-  """Define model"""
+def get_model(vocabulary_size, max_seq_len, n_targets, init_vectors):
+  """Average pooling model"""
 
   embed = Embedding(
     input_dim=vocabulary_size,
@@ -106,30 +106,6 @@ def get_model_fun(vocabulary_size, max_seq_len, n_targets, init_vectors):
   output_tensor = Dense(n_targets, activation='sigmoid')(x)
 
   model = Model(input_tensor, output_tensor)
-  plot_model(model, show_shapes=True, to_file='Model/model.png')
-  model.summary()
-
-  return model
-
-def get_model_seq(vocabulary_size, max_seq_len, n_targets, init_vectors):
-  """Define model"""
-
-  model = Sequential()
-  model.add(Embedding(input_dim=vocabulary_size,
-                      output_dim=cfg.getint('dan', 'emb_dim'),
-                      input_length=max_seq_len,
-                      weights=init_vectors,
-                      name='EL'))
-  model.add(GlobalAveragePooling1D(name='AL'))
-
-  model.add(Dense(cfg.getint('dan', 'hidden'), name='HL'))
-  model.add(Activation(cfg.get('dan', 'activation')))
-
-  model.add(Dropout(cfg.getfloat('dan', 'dropout')))
-
-  model.add(Dense(n_targets))
-  model.add(Activation('sigmoid'))
-
   plot_model(model, show_shapes=True, to_file='Model/model.png')
   model.summary()
 
