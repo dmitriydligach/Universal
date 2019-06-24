@@ -35,7 +35,7 @@ def grid_search(x, y):
   """Find best model"""
 
   param_grid = {'C':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]}
-  lr = LinearSVC(class_weight='balanced', max_iter=10000)
+  lr = LinearSVC(class_weight='balanced', max_iter=100000)
   grid_search = GridSearchCV(
     lr,
     param_grid,
