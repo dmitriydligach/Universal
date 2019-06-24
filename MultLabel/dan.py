@@ -33,7 +33,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.models import Model, Sequential
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.embeddings import Embedding
-from keras.layers import GlobalAveragePooling1D
+from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import concatenate, dot
 from keras.models import load_model
 from keras.callbacks import Callback
@@ -51,6 +51,40 @@ warnings.warn = warn
 def get_model(vocabulary_size, max_seq_len, n_targets, init_vectors):
   """Define model"""
 
+  # define layers
+  embed = Embedding(
+    input_dim=vocabulary_size,
+    output_dim=cfg.getint('dan', 'emb_dim'),
+    input_length=max_seq_len,
+    weights=init_vectors,
+    name='EL')
+  avpool = GlobalAveragePooling1D(name='AP')
+  maxpool = GlobalMaxPooling1D(name='MP')
+  project = Dense(
+    cfg.getint('dan', 'hidden'),
+    activation=cfg.get('dan', 'activation'),
+    name='HL')
+  drop = Dropout(cfg.getfloat('dan', 'dropout'))
+
+  # define forward pass
+  input_tensor = Input(shape=(max_seq_len,))
+  x = embed(input_tensor)
+  x1 = avpool(x)
+  x2 = maxpool(x)
+  x = concatenate([x1, x2], axis=-1)
+  x = project(x)
+  x = drop(x)
+  output_tensor = Dense(n_targets, activation='sigmoid')(x)
+
+  model = Model(input_tensor, output_tensor)
+  plot_model(model, show_shapes=True, to_file='Model/model.png')
+  model.summary()
+
+  return model
+
+def get_model_fun(vocabulary_size, max_seq_len, n_targets, init_vectors):
+  """Define model"""
+
   embed = Embedding(
     input_dim=vocabulary_size,
     output_dim=cfg.getint('dan', 'emb_dim'),
@@ -61,7 +95,7 @@ def get_model(vocabulary_size, max_seq_len, n_targets, init_vectors):
   project = Dense(
     cfg.getint('dan', 'hidden'),
     activation=cfg.get('dan', 'activation'),
-    name='DL')
+    name='HL')
   drop = Dropout(cfg.getfloat('dan', 'dropout'))
 
   input_tensor = Input(shape=(max_seq_len,))
