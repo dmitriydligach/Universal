@@ -127,8 +127,14 @@ def main():
   print('x shape:', x.shape)
   print('y shape:', y.shape)
 
-  train_x, val_x, train_y, val_y = train_test_split(
-    x, y, test_size=cfg.getfloat('args', 'test_size'))
+  # are we training the best model?
+  if cfg.getfloat('args', 'test_size') != 0:
+    train_x, val_x, train_y, val_y = train_test_split(
+      x, y, test_size=cfg.getfloat('args', 'test_size'))
+    validation_data = (val_x, val_y)
+  else:
+    train_x, train_y = x, y
+    validation_data = None
 
   # TODO: figure out what to do about negated cuis
   init_vectors = None
@@ -138,7 +144,7 @@ def main():
     init_vectors = [w2v.select_vectors(dp.tokenizer.word_index)]
 
   model = get_model(
-    len(dp.tokenizer.word_index)+1,
+    len(dp.tokenizer.word_index) + 1,
     x.shape[1],
     y.shape[1],
     init_vectors)
@@ -155,7 +161,7 @@ def main():
 
   model.fit(train_x,
             train_y,
-            validation_data=(val_x, val_y),
+            validation_data=validation_data,
             epochs=cfg.getint('dan', 'epochs'),
             batch_size=cfg.getint('dan', 'batch'),
             validation_split=0.0,
