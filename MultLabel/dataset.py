@@ -33,6 +33,7 @@ class DatasetProvider:
     min_examples_per_targ):
     """Constructor"""
 
+    # input text tokenizer
     self.tokenizer = Tokenizer(oov_token='oovtok', lower=False)
 
     self.enc2targs = {} # encounter id -> set of targets
@@ -52,7 +53,7 @@ class DatasetProvider:
     os.mkdir(model_dir)
 
   def index(self):
-    """Process discharge summaries"""
+    """Process discharge summaries (prediction targets)"""
 
     targ_counter = collections.Counter()
 
@@ -83,7 +84,7 @@ class DatasetProvider:
         continue
 
       tokens = read_tokens(rest_path, self.n_x_cuis, None)
-      x.append(' '.join(set(tokens)))
+      x.append(' '.join(tokens)) 
 
       targ_vec = numpy.zeros(len(self.targ2int))
       enc_id = disch_path.split('/')[-1].split('_')[0]
@@ -97,6 +98,7 @@ class DatasetProvider:
     self.tokenizer.fit_on_texts(x)
     pickle_file = open('Model/tokenizer.p', 'wb')
     pickle.dump(self.tokenizer, pickle_file)
+    print('input vocabulary size:', len(self.tokenizer.word_index))
 
     x = self.tokenizer.texts_to_sequences(x)
     max_seq_len = max(len(seq) for seq in x)
