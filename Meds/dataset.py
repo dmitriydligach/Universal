@@ -5,6 +5,7 @@ sys.dont_write_bytecode = True
 import os, shutil, random, pickle, glob, operator, collections
 import numpy, pandas
 from configparser import ConfigParser
+from collections import defaultdict
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
@@ -37,7 +38,7 @@ class DatasetProvider:
       lower=False)
 
     # encounter id -> set of targets
-    self.enc2targs = {}
+    self.enc2targs = defaultdict(set)
 
     # target -> int index
     self.targ2int = {}
@@ -59,8 +60,6 @@ class DatasetProvider:
     df = pandas.read_csv(self.targ_file, dtype='str')
 
     for enc, drug in zip(df['HADM_ID'], df['DRUG']):
-      if enc not in self.enc2targs:
-        self.enc2targs[enc] = set()
       self.enc2targs[enc].add(drug.lower())
 
     targ_counter = collections.Counter()
