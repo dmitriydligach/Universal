@@ -109,6 +109,7 @@ class DatasetProvider:
     self.tokenizer.fit_on_texts(x)
     pickle_file = open('Model/tokenizer.p', 'wb')
     pickle.dump(self.tokenizer, pickle_file)
+    print('input vocabulary size:', len(self.tokenizer.word_index))
 
     x = self.tokenizer.texts_to_sequences(x)
     max_seq_len = max(len(seq) for seq in x)
