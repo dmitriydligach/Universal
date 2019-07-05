@@ -102,8 +102,19 @@ def run(
     else:
       config['epochs'] = 0
 
-    predictions = model.predict_classes(x_val)
-    f1 = f1_score(y_val, predictions, average='macro')
+
+
+    # probability for each class; (test size, num of classes)
+    distribution = model.predict(x_val)
+
+    # turn into an indicator matrix
+    distribution[distribution < 0.5] = 0
+    distribution[distribution >= 0.5] = 1
+
+    print(param_space)
+    f1 = f1_score(val_y, distribution, average='micro')
+    print("micro: p: %.3f - r: %.3f - f1: %.3f" % (p, r, f1))
+
     config2score[tuple(config.items())] = f1
 
     if verbose == 1:
