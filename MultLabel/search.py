@@ -111,7 +111,8 @@ def main():
     param_space,
     x,
     y,
-    n=cfg.getint('search', 'n'))
+    n=cfg.getint('search', 'n'),
+    verbose=1)
 
   # display configs sorted by f1
   print('\nconfigurations sorted by score:')
