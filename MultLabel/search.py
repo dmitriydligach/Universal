@@ -97,12 +97,12 @@ def main():
     'epochs': cfg.getint('search', 'max_epochs')}
 
   param_space = {
-    'emb_dim': (512, 1024, 2048),
+    'emb_dim': (512, 1024, 2048, 4096),
     'hidden': (1000, 3000, 5000, 10000),
     'activation': ('linear', 'tanh', 'relu'),
     'dropout': uniform(0, 0.75),
     'optimizer': ('RMSprop', 'Adam'),
-    'log10lr': (-5, -4, -3, -2, -1),
+    'log10lr': (-5, -4, -3, -2),
     'batch': (4, 8, 16, 32, 64)}
 
   config2score = rndsearch.run(
