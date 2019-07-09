@@ -109,7 +109,7 @@ def run(
     distribution[distribution < 0.5] = 0
     distribution[distribution >= 0.5] = 1
 
-    f1 = f1_score(y_val, distribution, average='micro')
+    f1 = f1_score(y_val, distribution, average='macro')
     config2score[tuple(config.items())] = f1
 
     if verbose == 1:
