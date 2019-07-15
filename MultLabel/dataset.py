@@ -84,7 +84,7 @@ class DatasetProvider:
         continue
 
       tokens = read_tokens(rest_path, self.n_x_cuis, None)
-      x.append(' '.join(tokens)) 
+      x.append(' '.join(tokens))
 
       targ_vec = numpy.zeros(len(self.targ2int))
       enc_id = disch_path.split('/')[-1].split('_')[0]
@@ -106,6 +106,35 @@ class DatasetProvider:
 
     return x, numpy.array(y)
 
+  def stats(self):
+    """Print various data statistics"""
+
+    all_x_sizes = []
+    all_y_sizes = []
+    all_ratios = []
+
+    for disch_path in glob.glob(self.train_dir + '*_discharge.txt'):
+
+      rest_path = disch_path.split('_')[0] + '_rest.txt'
+      if not os.path.exists(rest_path):
+        continue
+
+      enc_id = disch_path.split('/')[-1].split('_')[0]
+      x_tokens = set(read_tokens(rest_path, self.n_x_cuis, None))
+
+      y_tokens = set()
+      for targ in self.enc2targs[enc_id]:
+        if targ in self.targ2int:
+          y_tokens.add(targ)
+
+      all_x_sizes.append(len(x_tokens))
+      all_y_sizes.append(len(y_tokens))
+      all_ratios.append(len(x_tokens) / float(len(y_tokens)))
+
+    print('average x size:', sum(all_x_sizes) / len(all_x_sizes))
+    print('average y size:', sum(all_y_sizes) / len(all_y_sizes))
+    print('average ratio:', sum(all_ratios) / len(all_ratios))
+
 if __name__ == "__main__":
 
   cfg = ConfigParser()
@@ -119,7 +148,4 @@ if __name__ == "__main__":
     cfg.get('args', 'n_y_cuis'),
     cfg.getfloat('args', 'min_examples_per_targ'))
 
-  x, y = dp.load()
-  print('max_seq_len:', dp.max_seq_len)
-  print('x:', x.shape)
-  print('y:', y.shape)
+  dp.stats()
