@@ -46,7 +46,6 @@ class DatasetProvider:
     self.n_y_cuis = None if n_y_cuis == 'all' else int(n_y_cuis)
 
     self.index()
-    print('done indexing targets...')
 
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
@@ -55,6 +54,7 @@ class DatasetProvider:
   def index(self):
     """Process discharge summaries (prediction targets)"""
 
+    # in how many disch summaries does each target appear?
     targ_counter = collections.Counter()
 
     for disch_file in glob.glob(self.train_dir + '*_discharge.txt'):
@@ -64,12 +64,16 @@ class DatasetProvider:
       self.enc2targs[enc_id] = targs
       targ_counter.update(targs)
 
-    # make alphabet for *frequent* targets
+    total = 0
     index = 0
     for targ, count in targ_counter.items():
       if count > self.min_examples_per_targ:
+        total = total + count
         self.targ2int[targ] = index
         index = index + 1
+
+    average_examples = round(float(total) / len(self.targ2int), 2)
+    print('average examples per target:', average_examples)
 
   def load(self):
     """Process notes to make x and y"""
@@ -111,7 +115,6 @@ class DatasetProvider:
 
     all_x_sizes = []
     all_y_sizes = []
-    all_ratios = []
 
     for disch_path in glob.glob(self.train_dir + '*_discharge.txt'):
 
@@ -129,11 +132,9 @@ class DatasetProvider:
 
       all_x_sizes.append(len(x_tokens))
       all_y_sizes.append(len(y_tokens))
-      all_ratios.append(len(x_tokens) / float(len(y_tokens)))
 
     print('average x size:', sum(all_x_sizes) / len(all_x_sizes))
     print('average y size:', sum(all_y_sizes) / len(all_y_sizes))
-    print('average ratio:', sum(all_ratios) / len(all_ratios))
 
 if __name__ == "__main__":
 
