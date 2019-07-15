@@ -133,8 +133,9 @@ class DatasetProvider:
       all_x_sizes.append(len(x_tokens))
       all_y_sizes.append(len(y_tokens))
 
-    print('average x size:', sum(all_x_sizes) / len(all_x_sizes))
-    print('average y size:', sum(all_y_sizes) / len(all_y_sizes))
+    print('aver x size:', round(sum(all_x_sizes) / len(all_x_sizes), 2))
+    print('aver y size:', round(sum(all_y_sizes) / len(all_y_sizes), 2))
+    print('unique targets:', len(self.targ2int))
 
 if __name__ == "__main__":
 
