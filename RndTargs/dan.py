@@ -119,7 +119,7 @@ def main():
   dp = dataset.DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
-    cfg.getfloat('args', 'min_examples_per_targ'))
+    cfg.getint('args', 'n_examples'))
   x, y = dp.load()
 
   print('x shape:', x.shape)
