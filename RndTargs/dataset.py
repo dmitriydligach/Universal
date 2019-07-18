@@ -74,57 +74,6 @@ class DatasetProvider:
 
     return x, numpy.array(y)
 
-  def load_old(self):
-    """Process notes to make x and y"""
-
-    x = [] # input documents (n_docs, max_seq_len)
-    y = [] # targets we are predicting for each input
-
-    targ_counter = collections.Counter()
-
-    # make x, count targets, and map enc_id to targets
-    for file_path in glob.glob(self.train_dir + '*.txt'):
-
-      tokens = open(file_path).read().split()
-      unique = list(set(tokens))
-      random.shuffle(unique)
-
-      x_count = round(len(unique) * 0.85)
-      x.append(' '.join(unique[:x_count]))
-
-      targs = unique[x_count:]
-      enc_id = file_path.split('.')[0]
-      self.enc2targs[enc_id] = targs
-      targ_counter.update(targs)
-
-    # make x
-    self.tokenizer.fit_on_texts(x)
-    pickle_file = open('Model/tokenizer.p', 'wb')
-    pickle.dump(self.tokenizer, pickle_file)
-    print('input vocabulary size:', len(self.tokenizer.word_index))
-
-    x = self.tokenizer.texts_to_sequences(x)
-    max_seq_len = max(len(seq) for seq in x)
-    x = pad_sequences(x, maxlen=max_seq_len)
-
-    # figure out what targets to predict
-    index = 0
-    for targ, count in targ_counter.items():
-      if count > self.min_examples_per_targ:
-        self.targ2int[targ] = index
-        index = index + 1
-
-    # make y
-    for enc_id, targs in self.enc2targs.items():
-      targ_vec = numpy.zeros(len(self.targ2int))
-      for targ in targs:
-        if targ in self.targ2int:
-          targ_vec[self.targ2int[targ]] = 1
-
-      y.append(targ_vec)
-
-    return x, numpy.array(y)
-
 if __name__ == "__main__":
 
   cfg = ConfigParser()
