@@ -7,6 +7,20 @@ from configparser import ConfigParser
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
+def read_tokens(file_path, dropout=None):
+  """Read n tokens from specified file into a list"""
+
+  tokens = []
+  for line in open(file_path):
+    token, score = line.split(' ')
+    tokens.append(token)
+
+  if dropout is not None:
+    tokens_to_keep = round(len(tokens) * (1 - dropout))
+    tokens = random.sample(tokens, tokens_to_keep)
+
+  return tokens
+
 class DatasetProvider:
   """Make x and y from raw data"""
 
@@ -32,8 +46,8 @@ class DatasetProvider:
     x = [] # input documents (n_docs, max_seq_len)
     labels = [] # targets we are predicting for each input
 
-    for file_path in glob.glob(self.train_dir + '*.txt'):
-      tokens = open(file_path).read().split()
+    for file_path in glob.glob(self.train_dir + '*_discharge.txt'):
+      tokens = read_tokens(file_path)
       unique = list(set(tokens))
       x_count = round(len(unique) * 0.85)
 
