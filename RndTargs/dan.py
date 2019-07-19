@@ -26,9 +26,9 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
+import keras.optimizers as optimizers
 from keras import Input
 from keras.utils.np_utils import to_categorical
-from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Model, Sequential
 from keras.layers.core import Dense, Activation, Dropout
@@ -147,8 +147,9 @@ def main():
     y.shape[1],
     init_vectors)
 
+  optim = getattr(optimizers, cfg.get('dan', 'optimizer'))
   model.compile(loss='binary_crossentropy',
-                optimizer='rmsprop',
+                optimizer=optim(lr=10**cfg.getint('dan', 'log10lr')),
                 metrics=['accuracy'])
 
   # save the model after every epoch
