@@ -5,6 +5,7 @@ np.random.seed(1337)
 import tensorflow as tf
 tf.set_random_seed(1337)
 import os
+tf.logging.set_verbosity(tf.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import sys
 sys.dont_write_bytecode = True

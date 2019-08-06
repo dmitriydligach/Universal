@@ -8,6 +8,7 @@ np.random.seed(1337)
 rn.seed(1337)
 tf.set_random_seed(1337)
 import os
+tf.logging.set_verbosity(tf.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['PYTHONHASHSEED'] = '0'
 from keras import backend as bke
