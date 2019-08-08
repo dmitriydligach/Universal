@@ -46,7 +46,7 @@ class DatasetProvider:
     x = [] # input documents (n_docs, max_seq_len)
     labels = [] # targets we are predicting for each input
 
-    for file_path in glob.glob(self.train_dir + '*_discharge.txt'):
+    for file_path in glob.glob(self.train_dir + '*.txt'):
       tokens = read_tokens(file_path)
       unique = list(set(tokens))
       x_count = round(len(unique) * 0.85)
@@ -60,11 +60,8 @@ class DatasetProvider:
     self.tokenizer.fit_on_texts(x)
     pickle_file = open('Model/tokenizer.p', 'wb')
     pickle.dump(self.tokenizer, pickle_file)
+    x = self.tokenizer.texts_to_matrix(x, mode='binary')
     print('input vocabulary size:', len(self.tokenizer.word_index))
-
-    x = self.tokenizer.texts_to_sequences(x)
-    max_seq_len = max(len(seq) for seq in x)
-    x = pad_sequences(x, maxlen=max_seq_len)
 
     # determine unique targets
     uniq_targs = set()

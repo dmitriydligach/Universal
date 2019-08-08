@@ -41,7 +41,7 @@ from keras.callbacks import Callback
 from keras.utils import plot_model
 from keras.callbacks import ModelCheckpoint
 
-import dataset_dan, word2vec
+import dataset_bow, word2vec
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -49,60 +49,17 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def get_model_ampool(vocabulary_size, max_seq_len, n_targets, init_vectors):
-  """Average + max pooling model"""
-
-  # define layers
-  embed = Embedding(
-    input_dim=vocabulary_size,
-    output_dim=cfg.getint('dan', 'emb_dim'),
-    input_length=max_seq_len,
-    weights=init_vectors,
-    name='EL')
-  avpool = GlobalAveragePooling1D(name='AP')
-  maxpool = GlobalMaxPooling1D(name='MP')
-  project = Dense(
-    cfg.getint('dan', 'hidden'),
-    activation=cfg.get('dan', 'activation'),
-    name='HL')
-  drop = Dropout(cfg.getfloat('dan', 'dropout'))
-
-  # define forward pass
-  input_tensor = Input(shape=(max_seq_len,))
-  x = embed(input_tensor)
-  x1 = avpool(x)
-  x2 = maxpool(x)
-  x = concatenate([x1, x2], axis=-1)
-  x = project(x)
-  x = drop(x)
-  output_tensor = Dense(n_targets, activation='sigmoid')(x)
-
-  model = Model(input_tensor, output_tensor)
-  plot_model(model, show_shapes=True, to_file='Model/model.png')
-  model.summary()
-
-  return model
-
-def get_model(vocabulary_size, max_seq_len, n_targets, init_vectors):
+def get_model(vocabulary_size, n_targets):
   """Average pooling model"""
 
-  embed = Embedding(
-    input_dim=vocabulary_size,
-    output_dim=cfg.getint('dan', 'emb_dim'),
-    input_length=max_seq_len,
-    weights=init_vectors,
-    name='EL')
-  average = GlobalAveragePooling1D(name='AL')
   project = Dense(
-    cfg.getint('dan', 'hidden'),
-    activation=cfg.get('dan', 'activation'),
+    cfg.getint('bow', 'hidden'),
+    activation=cfg.get('bow', 'activation'),
     name='HL')
-  drop = Dropout(cfg.getfloat('dan', 'dropout'))
+  drop = Dropout(cfg.getfloat('bow', 'dropout'))
 
-  input_tensor = Input(shape=(max_seq_len,))
-  x = embed(input_tensor)
-  x = average(x)
-  x = project(x)
+  input_tensor = Input(shape=(vocabulary_size,))
+  x = project(input_tensor)
   x = drop(x)
   output_tensor = Dense(n_targets, activation='sigmoid')(x)
 
@@ -117,7 +74,7 @@ def main():
 
   base = os.environ['DATA_ROOT']
 
-  dp = dataset_dan.DatasetProvider(
+  dp = dataset_bow.DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
     cfg.getint('args', 'n_examples'))
@@ -142,15 +99,11 @@ def main():
     w2v = word2vec.Model(embed_file, verbose=True)
     init_vectors = [w2v.select_vectors(dp.tokenizer.word_index)]
 
-  model = get_model(
-    len(dp.tokenizer.word_index) + 1,
-    x.shape[1],
-    y.shape[1],
-    init_vectors)
+  model = get_model(len(dp.tokenizer.word_index) + 1, y.shape[1])
 
-  optim = getattr(optimizers, cfg.get('dan', 'optimizer'))
+  optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
   model.compile(loss='binary_crossentropy',
-                optimizer=optim(lr=10**cfg.getint('dan', 'log10lr')),
+                optimizer=optim(lr=10**cfg.getint('bow', 'log10lr')),
                 metrics=['accuracy'])
 
   # save the model after every epoch
@@ -162,8 +115,8 @@ def main():
   model.fit(train_x,
             train_y,
             validation_data=validation_data,
-            epochs=cfg.getint('dan', 'epochs'),
-            batch_size=cfg.getint('dan', 'batch'),
+            epochs=cfg.getint('bow', 'epochs'),
+            batch_size=cfg.getint('bow', 'batch'),
             validation_split=0.0,
             callbacks=[callback])
 
