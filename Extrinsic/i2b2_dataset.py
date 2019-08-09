@@ -56,12 +56,43 @@ class DatasetProvider:
       else:
         continue
 
-      # tokens = open(file_path).read().replace('n', '').split()
       tokens = open(file_path).read().split()
       x.append(' '.join(set(tokens)))
 
     x = self.tokenizer.texts_to_sequences(x)
     x = pad_sequences(x, maxlen=self.max_seq_len)
+
+    return x, y
+
+  def load_as_one_hot(self):
+    """Convert examples into sparse binary vectors"""
+
+    x = [] # to turn into a np array (n_docs, num_features)
+    y = [] # int labels
+
+    # document id -> label mapping
+    doc2label = i2b2.parse_standoff(
+      self.annot_xml,
+      self.disease,
+      self.judgement)
+
+    # load examples and labels
+    for f in os.listdir(self.corpus_path):
+      doc_id = f.split('.')[0]
+      file_path = os.path.join(self.corpus_path, f)
+
+      # no labels for some documents for some reason
+      if doc_id in doc2label:
+        string_label = doc2label[doc_id]
+        int_label = LABEL2INT[string_label]
+        y.append(int_label)
+      else:
+        continue
+
+      tokens = open(file_path).read().split()
+      x.append(' '.join(set(tokens)))
+
+    x = self.tokenizer.texts_to_matrix(x, mode='binary')
 
     return x, y
 
