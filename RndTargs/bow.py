@@ -92,15 +92,7 @@ def main():
     train_x, train_y = x, y
     validation_data = None
 
-  # TODO: figure out what to do about negated cuis
-  init_vectors = None
-  if cfg.has_option('data', 'embed'):
-    embed_file = os.path.join(base, cfg.get('data', 'embed'))
-    w2v = word2vec.Model(embed_file, verbose=True)
-    init_vectors = [w2v.select_vectors(dp.tokenizer.word_index)]
-
   model = get_model(len(dp.tokenizer.word_index) + 1, y.shape[1])
-
   optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
   model.compile(loss='binary_crossentropy',
                 optimizer=optim(lr=10**cfg.getint('bow', 'log10lr')),
