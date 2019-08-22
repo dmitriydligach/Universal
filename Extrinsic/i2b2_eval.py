@@ -50,7 +50,6 @@ def grid_search(x, y):
 def run_evaluation(disease):
   """Use pre-trained patient representations"""
 
-  print('disease:', disease)
   x_train, y_train, x_test, y_test = get_data(disease)
 
   if cfg.get('data', 'classif_param') == 'search':
@@ -63,7 +62,7 @@ def run_evaluation(disease):
   p = precision_score(y_test, predictions, average='macro')
   r = recall_score(y_test, predictions, average='macro')
   f1 = f1_score(y_test, predictions, average='macro')
-  print("precision: %.3f - recall: %.3f - f1: %.3f\n" % (p, r, f1))
+  print("%-25s p: %.3f - r: %.3f - f1: %.3f" % (disease, p, r, f1))
 
   return p, r, f1
 
@@ -108,9 +107,7 @@ def get_data(disease):
     x_train, y_train = train_data_provider.load_as_int_seqs()
 
   # make training vectors for target task
-  print('original x_train shape:', x_train.shape)
   x_train = interm_layer_model.predict(x_train)
-  print('new x_train shape:', x_train.shape)
 
   # now load the test set
   test_data_provider = DatasetProvider(
@@ -127,9 +124,7 @@ def get_data(disease):
     x_test, y_test = test_data_provider.load_as_int_seqs()
 
   # make test vectors for target task
-  print('original x_test shape:', x_test.shape)
   x_test = interm_layer_model.predict(x_test)
-  print('new x_test shape:', x_test.shape)
 
   return x_train, y_train, x_test, y_test
 
@@ -142,13 +137,10 @@ def run_evaluation_all_diseases():
   ps = []; rs = []; f1s = []
   for disease in i2b2.get_disease_names(test_annot, set()):
     p, r, f1 = run_evaluation(disease)
-    ps.append(p)
-    rs.append(r)
-    f1s.append(f1)
+    ps.append(p); rs.append(r); f1s.append(f1)
 
-  print('average p = %.3f' % np.mean(ps))
-  print('average r = %.3f' % np.mean(rs))
-  print('average f1 = %.3f' % np.mean(f1s))
+  print("%-25s p: %.3f - r: %.3f - f1: %.3f" % \
+    ('Average', np.mean(ps), np.mean(rs), np.mean(f1s)))
 
 if __name__ == "__main__":
 
