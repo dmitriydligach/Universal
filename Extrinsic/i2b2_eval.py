@@ -47,11 +47,11 @@ def grid_search(x, y):
 
   return grid_search.best_estimator_
 
-def run_evaluation_dense(disease, judgement):
+def run_evaluation(disease):
   """Use pre-trained patient representations"""
 
   print('disease:', disease)
-  x_train, y_train, x_test, y_test = data_dense(disease, judgement)
+  x_train, y_train, x_test, y_test = get_data(disease)
 
   if cfg.get('data', 'classif_param') == 'search':
     classifier = grid_search(x_train, y_train)
@@ -67,7 +67,7 @@ def run_evaluation_dense(disease, judgement):
 
   return p, r, f1
 
-def data_dense(disease, judgement):
+def get_data(disease):
   """Data to feed into code prediction model"""
 
   base = os.environ['DATA_ROOT']
@@ -76,12 +76,22 @@ def data_dense(disease, judgement):
   test_data = os.path.join(base, cfg.get('data', 'test_data'))
   test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
 
+  # annotation type (e.g. 'intuitive' vs. 'textual')
+  judgement = cfg.get('data', 'judgement')
+
+  # type of pre-training (e.g. 'bow', 'dan')
+  pretraining = cfg.get('data', 'pretraining')
+
   # load pre-trained model
   model = load_model(cfg.get('data', 'model_file'))
   interm_layer_model = Model(
     inputs=model.input,
     outputs=model.get_layer(cfg.get('data', 'rep_layer')).output)
-  maxlen = model.get_layer(name='EL').get_config()['input_length']
+
+  if pretraining == 'bow':
+    maxlen = None
+  else:
+    maxlen = model.get_layer(name='EL').get_config()['input_length']
 
   # load training data first
   train_data_provider = DatasetProvider(
@@ -91,7 +101,11 @@ def data_dense(disease, judgement):
     judgement,
     cfg.get('data', 'tokenizer_pickle'),
     maxlen)
-  x_train, y_train = train_data_provider.load()
+
+  if pretraining == 'bow':
+    x_train, y_train = train_data_provider.load_as_one_hot()
+  else:
+    x_train, y_train = train_data_provider.load_as_int_seqs()
 
   # make training vectors for target task
   print('original x_train shape:', x_train.shape)
@@ -106,7 +120,11 @@ def data_dense(disease, judgement):
     judgement,
     cfg.get('data', 'tokenizer_pickle'),
     maxlen)
-  x_test, y_test = test_data_provider.load()
+
+  if pretraining == 'bow':
+    x_test, y_test = test_data_provider.load_as_one_hot()
+  else:
+    x_test, y_test = test_data_provider.load_as_int_seqs()
 
   # make test vectors for target task
   print('original x_test shape:', x_test.shape)
@@ -119,13 +137,11 @@ def run_evaluation_all_diseases():
   """Evaluate classifier performance for all 16 comorbidities"""
 
   base = os.environ['DATA_ROOT']
-  judgement = cfg.get('data', 'judgement')
-  evaluation = cfg.get('data', 'evaluation')
   test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
 
   ps = []; rs = []; f1s = []
   for disease in i2b2.get_disease_names(test_annot, set()):
-    p, r, f1 = run_evaluation_dense(disease, judgement)
+    p, r, f1 = run_evaluation(disease)
     ps.append(p)
     rs.append(r)
     f1s.append(f1)

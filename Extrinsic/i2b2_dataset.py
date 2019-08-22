@@ -31,7 +31,7 @@ class DatasetProvider:
     pkl = open(tokenizer_pickle, 'rb')
     self.tokenizer = pickle.load(pkl)
 
-  def load(self):
+  def load_as_int_seqs(self):
     """Convert examples into lists of indices for keras"""
 
     x = [] # to turn into a np array (n_docs, max_seq_len)
