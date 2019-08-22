@@ -139,7 +139,7 @@ def run_evaluation_all_diseases():
     p, r, f1 = run_evaluation(disease)
     ps.append(p); rs.append(r); f1s.append(f1)
 
-  print("%-25s p: %.3f - r: %.3f - f1: %.3f" % \
+  print("\n%-25s p: %.3f - r: %.3f - f1: %.3f" % \
     ('Average', np.mean(ps), np.mean(rs), np.mean(f1s)))
 
 if __name__ == "__main__":
