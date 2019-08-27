@@ -70,19 +70,30 @@ def data_dense():
   train_data = os.path.join(base, cfg.get('data', 'train'))
   test_data = os.path.join(base, cfg.get('data', 'test'))
 
+  # type of pre-training (e.g. 'sparse', 'continuous')
+  pretraining = cfg.get('data', 'pretraining')
+  print('pretraining', pretraining)
   # load pre-trained model
   model = load_model(cfg.get('data', 'model_file'))
   interm_layer_model = Model(
     inputs=model.input,
     outputs=model.get_layer(cfg.get('data', 'rep_layer')).output)
-  maxlen = model.get_layer(name='EL').get_config()['input_length']
+
+  if pretraining == 'sparse':
+    maxlen = None
+  else:
+    maxlen = model.get_layer(name='EL').get_config()['input_length']
 
   # load training data first
   train_data_provider = DatasetProvider(
     train_data,
     cfg.get('data', 'tokenizer_pickle'),
     maxlen)
-  x_train, y_train = train_data_provider.load()
+
+  if pretraining == 'sparse':
+    x_train, y_train = train_data_provider.load_as_one_hot()
+  else:
+    x_train, y_train = train_data_provider.load_as_int_seqs()
 
   # make training vectors for target task
   print('original x_train shape:', x_train.shape)
@@ -94,7 +105,11 @@ def data_dense():
     test_data,
     cfg.get('data', 'tokenizer_pickle'),
     maxlen)
-  x_test, y_test = test_data_provider.load()
+
+  if pretraining == 'sparse':
+    x_test, y_test = test_data_provider.load_as_one_hot()
+  else:
+    x_test, y_test = test_data_provider.load_as_int_seqs()
 
   # make test vectors for target task
   print('original x_test shape:', x_test.shape)
