@@ -13,11 +13,14 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import accuracy_score
 from sklearn.decomposition import TruncatedSVD
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
@@ -31,20 +34,23 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def grid_search(x, y):
+def grid_search(x, y, scoring):
   """Find best model"""
 
   param_grid = {'C':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]}
-  lr = LinearSVC(class_weight='balanced', max_iter=100000)
-  grid_search = GridSearchCV(
-    lr,
-    param_grid,
-    scoring='f1_macro',
-    cv=10,
-    n_jobs=-1) # -1 fails on mac os
-  grid_search.fit(x, y)
+  lr = LogisticRegression(class_weight='balanced', max_iter=100000)
+  gs = GridSearchCV(lr, param_grid, scoring=scoring, cv=10)
+  gs.fit(x, y)
 
-  return grid_search.best_estimator_
+  return gs.best_estimator_
+
+def report_f1(y_test, predictions, average):
+  """Report p, r, and f1"""
+
+  p = precision_score(y_test, predictions, average=average)
+  r = recall_score(y_test, predictions, average=average)
+  f1 = f1_score(y_test, predictions, average=average)
+  print("[%s] p: %.3f - r: %.3f - f1: %.3f" % (average, p, r, f1))
 
 def run_evaluation_dense():
   """Use pre-trained patient representations"""
@@ -52,16 +58,20 @@ def run_evaluation_dense():
   x_train, y_train, x_test, y_test = data_dense()
 
   if cfg.get('data', 'classif_param') == 'search':
-    classifier = grid_search(x_train, y_train)
+    classifier = grid_search(x_train, y_train, 'roc_auc')
   else:
-    classifier = LinearSVC(class_weight='balanced')
+    classifier = LogisticRegression(class_weight='balanced')
     classifier.fit(x_train, y_train)
 
   predictions = classifier.predict(x_test)
-  p = precision_score(y_test, predictions, average='macro')
-  r = recall_score(y_test, predictions, average='macro')
-  f1 = f1_score(y_test, predictions, average='macro')
-  print("precision: %.3f - recall: %.3f - f1: %.3f\n" % (p, r, f1))
+  report_f1(y_test, predictions, 'macro')
+  report_f1(y_test, predictions, 'micro')
+
+  probs = classifier.predict_proba(x_test)
+  roc_auc = roc_auc_score(y_test, probs[:, 1])
+  accuracy = accuracy_score(y_test, predictions)
+  print('auc: %.3f' % roc_auc)
+  print('acc: %.3f' % accuracy)
 
 def data_dense():
   """Data to feed into code prediction model"""
