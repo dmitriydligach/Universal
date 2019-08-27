@@ -87,7 +87,7 @@ def get_data(disease):
     inputs=model.input,
     outputs=model.get_layer(cfg.get('data', 'rep_layer')).output)
 
-  if pretraining == 'bow':
+  if pretraining == 'sparse':
     maxlen = None
   else:
     maxlen = model.get_layer(name='EL').get_config()['input_length']
@@ -101,7 +101,7 @@ def get_data(disease):
     cfg.get('data', 'tokenizer_pickle'),
     maxlen)
 
-  if pretraining == 'bow':
+  if pretraining == 'sparse':
     x_train, y_train = train_data_provider.load_as_one_hot()
   else:
     x_train, y_train = train_data_provider.load_as_int_seqs()
@@ -118,7 +118,7 @@ def get_data(disease):
     cfg.get('data', 'tokenizer_pickle'),
     maxlen)
 
-  if pretraining == 'bow':
+  if pretraining == 'sparse':
     x_test, y_test = test_data_provider.load_as_one_hot()
   else:
     x_test, y_test = test_data_provider.load_as_int_seqs()

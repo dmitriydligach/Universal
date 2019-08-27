@@ -82,7 +82,7 @@ def data_dense():
 
   # type of pre-training (e.g. 'sparse', 'continuous')
   pretraining = cfg.get('data', 'pretraining')
-  print('pretraining', pretraining)
+
   # load pre-trained model
   model = load_model(cfg.get('data', 'model_file'))
   interm_layer_model = Model(
