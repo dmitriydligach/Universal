@@ -47,10 +47,12 @@ def main():
       key=operator.itemgetter(1),
       reverse=True)
 
-    # save resulting list of token-score tuples
-    out = open(to_dir + file_path.split('/')[-1], 'w')
+    # write to file
+    sorted_tokens = []
     for token, score in ranked:
-      out.write('%s %s\n' % (token, score))
+      sorted_tokens.append(token)
+    out = open(to_dir + file_path.split('/')[-1], 'w')
+    out.write(' '.join(sorted_tokens) + '\n')
 
 if __name__ == "__main__":
 

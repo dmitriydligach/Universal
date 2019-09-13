@@ -10,10 +10,7 @@ from keras.preprocessing.sequence import pad_sequences
 def read_tokens(file_path, dropout=None):
   """Read n tokens from specified file into a list"""
 
-  tokens = []
-  for line in open(file_path):
-    token, score = line.split(' ')
-    tokens.append(token)
+  tokens = open(file_path).read().split()
 
   if dropout is not None:
     tokens_to_keep = round(len(tokens) * (1 - dropout))
