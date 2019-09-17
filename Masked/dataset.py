@@ -31,7 +31,7 @@ class DatasetProvider:
     self.train_dir = train_dir
     self.n_examples = n_examples
 
-    self.tokenizer = Tokenizer(oov_token='oovtok', lower=False)
+    self.tokenizer = Tokenizer(lower=False)
 
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
@@ -66,22 +66,24 @@ class DatasetProvider:
       for _ in range(self.n_examples):
         random.shuffle(unique)
         x.append(' '.join(unique[:x_count]))
-        labels.append(unique[x_count:])
+        labels.append(' '.join(unique[x_count:]))
 
     # make x
     pkl = open('Model/tokenizer.p', 'rb')
     self.tokenizer = pickle.load(pkl)
     x = self.tokenizer.texts_to_matrix(x, mode='binary')
 
-    # convert labels to one-hot numpy arrays
-    y = []
-    for targ_list in labels:
-      targ_vec = numpy.zeros(len(self.tokenizer.word_index) + 1)
-      for targ in targ_list:
-        targ_vec[self.tokenizer.word_index[targ]] = 1
-      y.append(targ_vec)
+    # convert labels to one-hot numpy arrays (WHY + 1???)
+    # y = []
+    # for targ_list in labels:
+    #   targ_vec = numpy.zeros(len(self.tokenizer.word_index) + 1)
+    #   for targ in targ_list:
+    #     targ_vec[self.tokenizer.word_index[targ]] = 1
+    #   y.append(targ_vec)
 
-    return x, numpy.array(y)
+    y = self.tokenizer.texts_to_matrix(labels, mode='binary')
+
+    return x, y # numpy.array(y)
 
 if __name__ == "__main__":
 
