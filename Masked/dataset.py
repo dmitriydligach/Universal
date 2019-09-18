@@ -68,22 +68,14 @@ class DatasetProvider:
         x.append(' '.join(unique[:x_count]))
         labels.append(' '.join(unique[x_count:]))
 
-    # make x
+    # make x and y
     pkl = open('Model/tokenizer.p', 'rb')
     self.tokenizer = pickle.load(pkl)
     x = self.tokenizer.texts_to_matrix(x, mode='binary')
-
-    # convert labels to one-hot numpy arrays (WHY + 1???)
-    # y = []
-    # for targ_list in labels:
-    #   targ_vec = numpy.zeros(len(self.tokenizer.word_index) + 1)
-    #   for targ in targ_list:
-    #     targ_vec[self.tokenizer.word_index[targ]] = 1
-    #   y.append(targ_vec)
-
     y = self.tokenizer.texts_to_matrix(labels, mode='binary')
 
-    return x, y # numpy.array(y)
+    # keras reserves index zero
+    return x, y[:,1:]
 
 if __name__ == "__main__":
 
