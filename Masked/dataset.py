@@ -31,15 +31,14 @@ class DatasetProvider:
     self.train_dir = train_dir
     self.n_examples = n_examples
 
-    self.tokenizer = Tokenizer(lower=False)
-
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
 
-    self.make_tokenizer()
+    self.tokenizer = Tokenizer(lower=False)
+    self.tokenize()
 
-  def make_tokenizer(self):
+  def tokenize(self):
     """Read data and map words to ints"""
 
     x = [] # input documents
@@ -74,8 +73,8 @@ class DatasetProvider:
     x = self.tokenizer.texts_to_matrix(x, mode='binary')
     y = self.tokenizer.texts_to_matrix(labels, mode='binary')
 
-    # keras reserves index zero
-    return x, y[:,1:]
+    # column zero is empty
+    return x[:, 1:], y[:,1:]
 
 if __name__ == "__main__":
 
