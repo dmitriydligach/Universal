@@ -74,7 +74,7 @@ class DatasetProvider:
     y = self.tokenizer.texts_to_matrix(labels, mode='binary')
 
     # column zero is empty
-    return x[:, 1:], y[:,1:]
+    return x, y[:,1:]
 
 if __name__ == "__main__":
 

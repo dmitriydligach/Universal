@@ -92,7 +92,8 @@ def main():
     train_x, train_y = x, y
     validation_data = None
 
-  model = get_model(len(dp.tokenizer.word_index), y.shape[1])
+  # need to add one to account for the index 0 which is not used
+  model = get_model(len(dp.tokenizer.word_index)+1, y.shape[1])
   optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
   model.compile(loss='binary_crossentropy',
                 optimizer=optim(lr=10**cfg.getint('bow', 'log10lr')),
