@@ -35,7 +35,7 @@ class DatasetProvider:
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
 
-    self.tokenizer = Tokenizer(lower=False)
+    self.tokenizer = Tokenizer(oov_token='oovtok', lower=False)
     self.tokenize()
 
   def tokenize(self):
