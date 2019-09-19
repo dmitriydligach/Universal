@@ -25,7 +25,8 @@ class DatasetProvider:
     self,
     train_dir,
     model_dir,
-    n_examples):
+    n_examples,
+    max_cuis):
     """Constructor"""
 
     self.train_dir = train_dir
@@ -35,7 +36,10 @@ class DatasetProvider:
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
 
-    self.tokenizer = Tokenizer(oov_token='oovtok', lower=False)
+    self.tokenizer = Tokenizer(
+      num_words=None if max_cuis=='all' else int(max_cuis),
+      oov_token='oovtok',
+      lower=False)
     self.tokenize()
 
   def tokenize(self):

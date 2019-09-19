@@ -77,7 +77,8 @@ def main():
   dp = dataset.DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
-    cfg.getint('args', 'n_examples'))
+    cfg.getint('args', 'n_examples'),
+    cfg.get('args', 'max_cuis'))
   x, y = dp.load()
 
   print('x shape:', x.shape)
@@ -92,8 +93,13 @@ def main():
     train_x, train_y = x, y
     validation_data = None
 
+  if cfg.get('args', 'max_cuis') == 'all':
+    max_cuis = len(dp.tokenizer.word_index) + 1
+  else:
+    max_cuis = int(cfg.get('args', 'max_cuis'))
+
   # need to add one to account for the index 0 which is not used
-  model = get_model(len(dp.tokenizer.word_index)+1, y.shape[1])
+  model = get_model(max_cuis, y.shape[1])
   optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
   model.compile(loss='binary_crossentropy',
                 optimizer=optim(lr=10**cfg.getint('bow', 'log10lr')),
