@@ -80,7 +80,23 @@ def main():
     cfg.getint('args', 'n_examples'),
     cfg.get('args', 'max_cuis'))
 
+  max_cuis = int(cfg.get('args', 'max_cuis'))
+  model = get_model(max_cuis, max_cuis - 1)
+  optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
+
+  model.compile(
+    loss='binary_crossentropy',
+    optimizer=optim(lr=10**cfg.getint('bow', 'log10lr')),
+    metrics=['accuracy'])
+
+  callback = ModelCheckpoint(
+    cfg.get('data', 'model_dir') + 'model.h5',
+    verbose=1,
+    save_best_only=True)
+
   for x, y in dp.load():
+
+    print('batch x and y shapes:', x.shape, y.shape)
 
     # are we training the best model?
     if cfg.getfloat('args', 'test_size') != 0:
@@ -90,23 +106,6 @@ def main():
     else:
       train_x, train_y = x, y
       validation_data = None
-
-    max_cuis = int(cfg.get('args', 'max_cuis'))
-    model = get_model(max_cuis, max_cuis - 1)
-    optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
-
-    model.compile(
-      loss='binary_crossentropy',
-      optimizer=optim(lr=10**cfg.getint('bow', 'log10lr')),
-      metrics=['accuracy'])
-
-    # save the model after every epoch
-    callback = ModelCheckpoint(
-      cfg.get('data', 'model_dir') + 'model.h5',
-      verbose=1,
-      save_best_only=True)
-
-    print('batch x and y shapes:', x.shape, y.shape)
 
     model.fit(
       train_x,

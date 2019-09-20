@@ -55,7 +55,7 @@ class DatasetProvider:
     pickle_file = open('Model/tokenizer.p', 'wb')
     pickle.dump(self.tokenizer, pickle_file)
 
-  def load(self, batch=15000):
+  def load(self, batch=150000):
     """Generate batches of training examples"""
 
     x = []      # input documents
@@ -75,6 +75,7 @@ class DatasetProvider:
         y.append(' '.join(unique[x_count:]))
 
       if len(x) == batch:
+        print('generating a new batch...')
         x = self.tokenizer.texts_to_matrix(x, mode='binary')
         y = self.tokenizer.texts_to_matrix(y, mode='binary')
         print('fetched %d examples...' % batch)
