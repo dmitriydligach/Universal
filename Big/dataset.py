@@ -25,12 +25,15 @@ class DatasetProvider:
     self,
     train_dir,
     model_dir,
-    n_examples,
-    max_cuis):
+    max_cuis,
+    samples_per_doc,
+    fetch_batches,
+    batch_size):
     """Constructor"""
 
     self.train_dir = train_dir
-    self.n_examples = n_examples
+    self.samples_per_doc = samples_per_doc
+    self.fetch_samples = batch_size * fetch_batches
 
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
@@ -83,30 +86,32 @@ class DatasetProvider:
         x = []
         y = []
 
-  def load(self, chunk_size=8192*5):
-    """Generate chunk_size examples at a time"""
+  def load(self):
+    """Generate n examples at a time"""
+
+    x = [] # one chunk of samples
+    y = [] # labels for these samples
 
     pkl = open('Model/tokenizer.p', 'rb')
     self.tokenizer = pickle.load(pkl)
 
-    x = []
-    y = []
+    for _ in range(self.samples_per_doc):
+      for file_path in glob.glob(self.train_dir + '*.txt'):
 
-    for file_path in glob.glob(self.train_dir + '*.txt'):
-      tokens = read_tokens(file_path)
-      unique = list(set(tokens))
-      x_count = round(len(unique) * 0.85)
+        tokens = read_tokens(file_path)
+        unique = list(set(tokens))
+        x_count = round(len(unique) * 0.85)
 
-      random.shuffle(unique)
-      x.append(' '.join(unique[:x_count]))
-      y.append(' '.join(unique[x_count:]))
+        random.shuffle(unique)
+        x.append(' '.join(unique[:x_count]))
+        y.append(' '.join(unique[x_count:]))
 
-      if len(x) == chunk_size:
-        print('fetching %d examples...' % len(x))
-        x = self.tokenizer.texts_to_matrix(x, mode='binary')
-        y = self.tokenizer.texts_to_matrix(y, mode='binary')
-        yield x, y[:, 1:]
-        x, y = [], []
+        if len(x) == self.fetch_samples:
+          print('fetching %d examples...' % len(x))
+          x = self.tokenizer.texts_to_matrix(x, mode='binary')
+          y = self.tokenizer.texts_to_matrix(y, mode='binary')
+          yield x, y[:, 1:]
+          x, y = [], []
 
 if __name__ == "__main__":
 

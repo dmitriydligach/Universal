@@ -77,8 +77,10 @@ def main():
   dp = dataset.DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
-    cfg.getint('args', 'n_examples'),
-    cfg.get('args', 'max_cuis'))
+    cfg.get('args', 'max_cuis'),
+    cfg.getint('args', 'samples_per_doc'),
+    cfg.getint('args', 'fetch_batches'),
+    cfg.getint('bow', 'batch'))
 
   max_cuis = int(cfg.get('args', 'max_cuis'))
   model = get_model(max_cuis, max_cuis - 1)
@@ -94,7 +96,7 @@ def main():
     verbose=1,
     save_best_only=True)
 
-  # generate chunks of training data
+  # generate chunks of examples
   for x, y in dp.load():
     print('batch x and y shapes:', x.shape, y.shape)
 
