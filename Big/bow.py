@@ -94,14 +94,14 @@ def main():
     verbose=1,
     save_best_only=True)
 
+  # generate chunks of training data
   for x, y in dp.load():
-
     print('batch x and y shapes:', x.shape, y.shape)
 
     # are we training the best model?
     if cfg.getfloat('args', 'test_size') != 0:
       train_x, val_x, train_y, val_y = train_test_split(
-      x, y, test_size=cfg.getfloat('args', 'test_size'))
+        x, y, test_size=cfg.getfloat('args', 'test_size'))
       validation_data = (val_x, val_y)
     else:
       train_x, train_y = x, y
