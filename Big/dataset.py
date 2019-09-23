@@ -96,8 +96,11 @@ class DatasetProvider:
     self.tokenizer = pickle.load(pkl)
 
     for _ in range(self.samples_per_doc):
-      for file_path in glob.glob(self.train_dir + '*.txt'):
+      files = glob.glob(self.train_dir + '*.txt')
+      print('total files:', len(files))
+      random.shuffle(files)
 
+      for file_path in files:
         tokens = read_tokens(file_path)
         unique = list(set(tokens))
         x_count = round(len(unique) * 0.85)
