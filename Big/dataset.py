@@ -95,10 +95,15 @@ class DatasetProvider:
     pkl = open('Model/tokenizer.p', 'rb')
     self.tokenizer = pickle.load(pkl)
 
-    for _ in range(self.samples_per_doc):
-      files = glob.glob(self.train_dir + '*.txt')
-      print('total files:', len(files))
-      random.shuffle(files)
+    files = glob.glob(self.train_dir + '*.txt')
+    total_examples = len(files) * self.samples_per_doc
+    print('total files:', len(files))
+    print('total examples:', total_examples)
+    random.shuffle(files)
+
+    count = 0 # track num of examples generated
+    for pass_num in range(self.samples_per_doc):
+      print('pass %d over files...' % pass_num)
 
       for file_path in files:
         tokens = read_tokens(file_path)
@@ -108,9 +113,14 @@ class DatasetProvider:
         random.shuffle(unique)
         x.append(' '.join(unique[:x_count]))
         y.append(' '.join(unique[x_count:]))
+        count = count + 1
+
+        print(len(x))
+        print(len(x) == self.fetch_samples)
 
         if len(x) == self.fetch_samples:
-          print('fetching %d examples...' % len(x))
+          print('fetching %d samples...' % self.fetch_samples)
+          print('%d/%d generated so far...' % (count, total_examples))
           x = self.tokenizer.texts_to_matrix(x, mode='binary')
           y = self.tokenizer.texts_to_matrix(y, mode='binary')
           yield x, y[:, 1:]
