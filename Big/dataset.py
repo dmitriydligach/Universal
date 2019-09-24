@@ -58,34 +58,6 @@ class DatasetProvider:
     pickle_file = open('Model/tokenizer.p', 'wb')
     pickle.dump(self.tokenizer, pickle_file)
 
-  def load_old(self, batch=150000):
-    """Generate batches of training examples"""
-
-    x = [] # input documents
-    y = [] # targets we are predicting for each input
-
-    pkl = open('Model/tokenizer.p', 'rb')
-    self.tokenizer = pickle.load(pkl)
-
-    for file_path in glob.glob(self.train_dir + '*.txt'):
-      tokens = read_tokens(file_path)
-      unique = list(set(tokens))
-      x_count = round(len(unique) * 0.85)
-
-      for _ in range(self.n_examples):
-        random.shuffle(unique)
-        x.append(' '.join(unique[:x_count]))
-        y.append(' '.join(unique[x_count:]))
-
-      if len(x) == batch:
-        print('generating a new batch...')
-        x = self.tokenizer.texts_to_matrix(x, mode='binary')
-        y = self.tokenizer.texts_to_matrix(y, mode='binary')
-        print('fetched %d examples...' % batch)
-        yield x, y[:, 1:]
-        x = []
-        y = []
-
   def load(self):
     """Generate n examples at a time"""
 
