@@ -87,9 +87,6 @@ class DatasetProvider:
         y.append(' '.join(unique[x_count:]))
         count = count + 1
 
-        print(len(x))
-        print(len(x) == self.fetch_samples)
-
         if len(x) == self.fetch_samples:
           print('fetching %d samples...' % self.fetch_samples)
           print('%d/%d generated so far...' % (count, total_examples))
