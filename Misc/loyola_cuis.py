@@ -11,6 +11,8 @@ import configparser
 def parse_notes(cui_file, out_dir):
   """Parse cui file"""
 
+  print('parsing file %s...' % cui_file)
+  
   for line in open(cui_file):
     elements = line.strip().split('|')
     report_id = elements[0]
@@ -19,8 +21,9 @@ def parse_notes(cui_file, out_dir):
     count = elements[9]
 
     out = open('%s%s.txt' % (out_dir, report_id), 'a')
+    cui = cui if polarity == '1' else 'n%s' % cui
+
     for _ in range(int(count)):
-      cui = cui if polarity == '1' else '-%s' % cui
       out.write(cui + ' ')
 
 def parse_note_types(cui_file, note_prefix, out_dir):
@@ -37,8 +40,9 @@ def parse_note_types(cui_file, note_prefix, out_dir):
 
     if report_type.startswith(note_prefix):
       out = open('%s%s.txt' % (out_dir, report_id), 'a')
+      cui = cui if polarity == '1' else '-%s' % cui
+
       for _ in range(int(count)):
-        cui = cui if polarity == '1' else '-%s' % cui
         out.write(cui + ' ')
 
 def parse_encounters(cui_file, out_dir):
@@ -54,8 +58,9 @@ def parse_encounters(cui_file, out_dir):
     count = elements[9]
 
     out = open('%s%s.txt' % (out_dir, encounter_id), 'a')
+    cui = cui if polarity == '1' else '-%s' % cui
+
     for _ in range(int(count)):
-      cui = cui if polarity == '1' else '-%s' % cui
       out.write(cui + ' ')  
 
 def note_types_to_files():
