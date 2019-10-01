@@ -8,7 +8,20 @@ import configparser
 # CUI file header:
 # RptID|RptDesc|MRN|Hsp_Account_ID|CodeDomain|Cui|Tui|PreferredText|Polarity|Count
 
-# TODO: fix negation
+def parse_notes(cui_file, out_dir):
+  """Parse cui file"""
+
+  for line in open(cui_file):
+    elements = line.strip().split('|')
+    report_id = elements[0]
+    cui = elements[5]
+    polarity = elements[8]
+    count = elements[9]
+
+    out = open('%s%s.txt' % (out_dir, report_id), 'a')
+    for _ in range(int(count)):
+      cui = cui if polarity == '1' else '-%s' % cui
+      out.write(cui + ' ')
 
 def parse_note_types(cui_file, note_prefix, out_dir):
   """Parse cui file"""
@@ -25,6 +38,7 @@ def parse_note_types(cui_file, note_prefix, out_dir):
     if report_type.startswith(note_prefix):
       out = open('%s%s.txt' % (out_dir, report_id), 'a')
       for _ in range(int(count)):
+        cui = cui if polarity == '1' else '-%s' % cui
         out.write(cui + ' ')
 
 def parse_encounters(cui_file, out_dir):
@@ -66,9 +80,21 @@ def encounters_to_files():
   for cui_file in cui_files.split('|'):
     parse_encounters(root_dir + cui_file, root_dir + out_dir)
 
+def notes_to_files():
+  """Main driver"""
+
+  root_dir = cfg.get('args', 'root_dir')
+  out_dir = cfg.get('args', 'out_dir')
+  cui_files = cfg.get('args', 'cui_files')
+
+  for cui_file in cui_files.split('|'):
+    parse_notes(root_dir + cui_file, root_dir + out_dir)
+    
 if __name__ == "__main__":
 
   cfg = configparser.ConfigParser(allow_no_value=True)
   cfg.read(sys.argv[1])
 
-  encounters_to_files()
+  # encounters_to_files()
+  parse_notes()
+  
