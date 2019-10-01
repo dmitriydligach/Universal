@@ -96,5 +96,6 @@ if __name__ == "__main__":
   cfg.read(sys.argv[1])
 
   # encounters_to_files()
-  parse_notes()
+  notes_to_files()
+  
   
