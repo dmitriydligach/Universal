@@ -40,7 +40,7 @@ def parse_note_types(cui_file, note_prefix, out_dir):
 
     if report_type.startswith(note_prefix):
       out = open('%s%s.txt' % (out_dir, report_id), 'a')
-      cui = cui if polarity == '1' else '-%s' % cui
+      cui = cui if polarity == '1' else 'n%s' % cui
 
       for _ in range(int(count)):
         out.write(cui + ' ')
@@ -58,7 +58,7 @@ def parse_encounters(cui_file, out_dir):
     count = elements[9]
 
     out = open('%s%s.txt' % (out_dir, encounter_id), 'a')
-    cui = cui if polarity == '1' else '-%s' % cui
+    cui = cui if polarity == '1' else 'n%s' % cui
 
     for _ in range(int(count)):
       out.write(cui + ' ')  
@@ -100,7 +100,7 @@ if __name__ == "__main__":
   cfg = configparser.ConfigParser(allow_no_value=True)
   cfg.read(sys.argv[1])
 
-  # encounters_to_files()
-  notes_to_files()
+  encounters_to_files()
+  # notes_to_files()
   
   
