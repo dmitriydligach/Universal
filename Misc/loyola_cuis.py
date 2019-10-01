@@ -8,7 +8,9 @@ import configparser
 # CUI file header:
 # RptID|RptDesc|MRN|Hsp_Account_ID|CodeDomain|Cui|Tui|PreferredText|Polarity|Count
 
-def parse(cui_file, note_prefix, out_dir):
+# TODO: fix negation
+
+def parse_note_types(cui_file, note_prefix, out_dir):
   """Parse cui file"""
 
   print('searching %s prefix in %s...' % (note_prefix, cui_file))
@@ -25,7 +27,24 @@ def parse(cui_file, note_prefix, out_dir):
       for _ in range(int(count)):
         out.write(cui + ' ')
 
-def main():
+def parse_encounters(cui_file, out_dir):
+  """Parse notes into encounters"""
+
+  print('parsing file %s...' % cui_file)
+
+  for line in open(cui_file):
+    elements = line.strip().split('|')
+    encounter_id = elements[3]
+    cui = elements[5]
+    polarity = elements[8]
+    count = elements[9]
+
+    out = open('%s%s.txt' % (out_dir, encounter_id), 'a')
+    for _ in range(int(count)):
+      cui = cui if polarity == '1' else '-%s' % cui
+      out.write(cui + ' ')  
+
+def note_types_to_files():
   """Main driver"""
 
   root_dir = cfg.get('args', 'root_dir')
@@ -37,9 +56,19 @@ def main():
     for note_prefix in note_prefixes.split('|'):
       parse(root_dir + cui_file, note_prefix, root_dir + out_dir)
 
+def encounters_to_files():
+  """Main driver"""
+
+  root_dir = cfg.get('args', 'root_dir')
+  out_dir = cfg.get('args', 'out_dir')
+  cui_files = cfg.get('args', 'cui_files')
+
+  for cui_file in cui_files.split('|'):
+    parse_encounters(root_dir + cui_file, root_dir + out_dir)
+
 if __name__ == "__main__":
 
   cfg = configparser.ConfigParser(allow_no_value=True)
   cfg.read(sys.argv[1])
 
-  main()
+  encounters_to_files()
