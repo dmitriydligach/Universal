@@ -77,6 +77,7 @@ def main():
   dp = dataset.DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
+    cfg.get('args', 'max_files'),
     cfg.getint('args', 'max_cuis'),
     cfg.getint('args', 'samples_per_doc'),
     cfg.getint('args', 'fetch_batches'),

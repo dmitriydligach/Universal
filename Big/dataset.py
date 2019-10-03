@@ -25,19 +25,27 @@ class DatasetProvider:
     self,
     train_dir,
     model_dir,
+    max_files,
     max_cuis,
     samples_per_doc,
     fetch_batches,
     batch_size):
     """Constructor"""
 
-    self.train_dir = train_dir
     self.samples_per_doc = samples_per_doc
     self.fetch_samples = batch_size * fetch_batches
+    self.max_files = None if max_files == 'all' else int(max_files)
 
+    # remove old model dir just in case
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
     os.mkdir(model_dir)
+
+    # file paths for tokenzier and training
+    self.file_paths = glob.glob(train_dir + '*.txt')
+    random.shuffle(self.file_paths)
+    self.file_paths = self.file_paths[:self.max_files]
+    print('total files:', len(self.file_paths))
 
     self.tokenizer = Tokenizer(
       num_words=max_cuis,
@@ -49,7 +57,7 @@ class DatasetProvider:
     """Read data and map words to ints"""
 
     x = [] # input documents
-    for file_path in glob.glob(self.train_dir + '*.txt'):
+    for file_path in self.file_paths:
       file_as_string = open(file_path).read()
       x.append(file_as_string)
 
@@ -68,17 +76,16 @@ class DatasetProvider:
     pkl = open('Model/tokenizer.p', 'rb')
     self.tokenizer = pickle.load(pkl)
 
-    files = glob.glob(self.train_dir + '*.txt')
-    total_examples = len(files) * self.samples_per_doc
-    print('total files:', len(files))
+    count = 0 # track num of examples generated so far
+    total_examples = len(self.file_paths) * self.samples_per_doc
     print('total examples:', total_examples)
-    random.shuffle(files)
 
-    count = 0 # track num of examples generated
+    # loop over all files multiple times
     for pass_num in range(self.samples_per_doc):
       print('pass %d over files...' % pass_num)
 
-      for file_path in files:
+      # loop over all files
+      for file_path in self.file_paths:
         tokens = read_tokens(file_path)
         unique = list(set(tokens))
         x_count = round(len(unique) * 0.85)
