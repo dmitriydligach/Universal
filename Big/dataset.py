@@ -40,7 +40,7 @@ class DatasetProvider:
     os.mkdir(model_dir)
 
     self.tokenizer = Tokenizer(
-      num_words=None if max_cuis=='all' else int(max_cuis),
+      num_words=max_cuis,
       oov_token='oovtok',
       lower=False)
     self.tokenize()
@@ -54,9 +54,10 @@ class DatasetProvider:
       x.append(file_as_string)
 
     self.tokenizer.fit_on_texts(x)
-    print('input vocabulary size:', len(self.tokenizer.word_index))
+    print('vocabulary size:', len(self.tokenizer.word_index))
     pickle_file = open('Model/tokenizer.p', 'wb')
     pickle.dump(self.tokenizer, pickle_file)
+    print('tokenizer saved: Model/tokenizer.p')
 
   def load(self):
     """Generate n examples at a time"""
