@@ -40,7 +40,7 @@ class DatasetProvider:
     self.file_paths = glob.glob(train_dir + '*.txt')
     random.shuffle(self.file_paths)
     self.file_paths = self.file_paths[:self.max_files]
-    print('total files:', len(self.file_paths))
+    print('total training files:', len(self.file_paths))
 
     if make_alphabet:
       print('making a new alphabet...')
@@ -64,7 +64,7 @@ class DatasetProvider:
     pickle.dump(self.tokenizer, pickle_file)
     print('tokenizer saved in Model/tokenizer.p')
 
-  def load(self):
+  def stream(self):
     """Generate n examples at a time"""
 
     x = [] # one chunk of samples
@@ -75,7 +75,7 @@ class DatasetProvider:
 
     count = 0 # track num of examples generated so far
     total_examples = len(self.file_paths) * self.samples_per_doc
-    print('total examples:', total_examples)
+    print('total training examples:', total_examples)
 
     # loop over all files multiple times
     for pass_num in range(self.samples_per_doc):
@@ -99,6 +99,34 @@ class DatasetProvider:
           y = self.tokenizer.texts_to_matrix(y, mode='binary')
           yield x, y[:, 1:]
           x, y = [], []
+
+  def load(self, path):
+    """Load entire data into memory"""
+
+    x = [] # samples as strings
+    y = [] # labels for these samples
+
+    file_paths = glob.glob(path + '*.txt')
+    random.shuffle(file_paths)
+
+    for _ in range(self.samples_per_doc):
+      for file_path in file_paths:
+
+        tokens = read_tokens(file_path)
+        unique = list(set(tokens))
+        x_count = round(len(unique) * 0.85)
+
+        random.shuffle(unique)
+        x.append(' '.join(unique[:x_count]))
+        y.append(' '.join(unique[x_count:]))
+
+    pkl = open('Model/tokenizer.p', 'rb')
+    self.tokenizer = pickle.load(pkl)
+
+    x = self.tokenizer.texts_to_matrix(x, mode='binary')
+    y = self.tokenizer.texts_to_matrix(y, mode='binary')
+
+    return x, y[:,1:]
 
 if __name__ == "__main__":
 

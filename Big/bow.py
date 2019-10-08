@@ -88,6 +88,8 @@ def configure_model_dir():
     if os.path.exists('Model/tokenizer.p'):
       print('removing old alphabet...')
       os.remove('Model/tokenizer.p')
+  else:
+    print('re-using existing alphabet...')
 
 def main():
   """Driver function"""
@@ -118,32 +120,22 @@ def main():
     verbose=1,
     save_best_only=True)
 
-  # generate chunks of examples
-  for x, y in dp.load():
-    print('batch x and y shapes:', x.shape, y.shape)
+  # load validation data
+  val_x, val_y = dp.load(os.path.join(base, cfg.get('data', 'dev')))
+  print('dev x, y shapes:', val_x.shape, val_y.shape)
 
-    # are we training the best model?
-    if cfg.getfloat('args', 'test_size') != 0:
-      train_x, val_x, train_y, val_y = train_test_split(
-        x, y, test_size=cfg.getfloat('args', 'test_size'))
-      validation_data = (val_x, val_y)
-    else:
-      train_x, train_y = x, y
-      validation_data = None
+  # stream training data
+  for train_x, train_y in dp.stream():
+    print('train x, y shapes:', train_x.shape, train_y.shape)
 
     model.fit(
       train_x,
       train_y,
-      validation_data=validation_data,
+      validation_data=(val_x, val_y),
       epochs=cfg.getint('bow', 'epochs'),
       batch_size=cfg.getint('bow', 'batch'),
       validation_split=0.0,
       callbacks=[callback])
-
-  # are we training the best model?
-  if cfg.getfloat('args', 'test_size') == 0:
-    model.save('Model/model.h5')
-    exit()
 
   # probability for each class; (test size, num of classes)
   distribution = model.predict(val_x)
