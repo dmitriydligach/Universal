@@ -43,7 +43,6 @@ class DatasetProvider:
     print('total training files:', len(self.file_paths))
 
     if make_alphabet:
-      print('making a new alphabet...')
       self.tokenizer = Tokenizer(
         num_words=max_cuis,
         oov_token='oovtok',
@@ -58,6 +57,7 @@ class DatasetProvider:
       file_as_string = open(file_path).read()
       x.append(file_as_string)
 
+    print('making alphabet...')
     self.tokenizer.fit_on_texts(x)
     print('vocabulary size:', len(self.tokenizer.word_index))
     pickle_file = open('Model/tokenizer.p', 'wb')

@@ -88,8 +88,6 @@ def configure_model_dir():
     if os.path.exists('Model/tokenizer.p'):
       print('removing old alphabet...')
       os.remove('Model/tokenizer.p')
-  else:
-    print('re-using existing alphabet...')
 
 def main():
   """Driver function"""
