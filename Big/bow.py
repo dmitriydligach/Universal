@@ -69,19 +69,40 @@ def get_model(vocabulary_size, n_targets):
 
   return model
 
+def configure_model_dir():
+  """Configure dir to store model, tokenizer, etc."""
+
+  # create model dir if needed
+  if not os.path.isdir('Model'):
+    print('making a new model dir...')
+    os.mkdir('Model')
+
+  # delete old model prior to training
+  if os.path.exists('Model/model.h5'):
+    if os.path.exists('Model/model.h5'):
+      print('removing old model...')
+      os.remove('Model/model.h5')
+
+  # remove old alphabet if making a new one
+  if cfg.getboolean('args', 'make_alphabet'):
+    if os.path.exists('Model/tokenizer.p'):
+      print('removing old alphabet...')
+      os.remove('Model/tokenizer.p')
+
 def main():
   """Driver function"""
 
+  configure_model_dir()
   base = os.environ['DATA_ROOT']
 
   dp = dataset.DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
-    cfg.get('data', 'model_dir'),
     cfg.get('args', 'max_files'),
     cfg.getint('args', 'max_cuis'),
     cfg.getint('args', 'samples_per_doc'),
     cfg.getint('args', 'fetch_batches'),
-    cfg.getint('bow', 'batch'))
+    cfg.getint('bow', 'batch'),
+    cfg.getboolean('args', 'make_alphabet'))
 
   max_cuis = int(cfg.get('args', 'max_cuis'))
   model = get_model(max_cuis, max_cuis - 1)
@@ -93,7 +114,7 @@ def main():
     metrics=['accuracy'])
 
   callback = ModelCheckpoint(
-    cfg.get('data', 'model_dir') + 'model.h5',
+    'Model/model.h5',
     verbose=1,
     save_best_only=True)
 
@@ -121,7 +142,7 @@ def main():
 
   # are we training the best model?
   if cfg.getfloat('args', 'test_size') == 0:
-    model.save(cfg.get('data', 'model_dir') + 'model.h5')
+    model.save('Model/model.h5')
     exit()
 
   # probability for each class; (test size, num of classes)

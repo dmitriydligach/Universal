@@ -24,22 +24,17 @@ class DatasetProvider:
   def __init__(
     self,
     train_dir,
-    model_dir,
     max_files,
     max_cuis,
     samples_per_doc,
     fetch_batches,
-    batch_size):
+    batch_size,
+    make_alphabet):
     """Constructor"""
 
     self.samples_per_doc = samples_per_doc
     self.fetch_samples = batch_size * fetch_batches
     self.max_files = None if max_files == 'all' else int(max_files)
-
-    # remove old model dir just in case
-    if os.path.isdir(model_dir):
-      shutil.rmtree(model_dir)
-    os.mkdir(model_dir)
 
     # file paths for tokenzier and training
     self.file_paths = glob.glob(train_dir + '*.txt')
@@ -47,11 +42,13 @@ class DatasetProvider:
     self.file_paths = self.file_paths[:self.max_files]
     print('total files:', len(self.file_paths))
 
-    self.tokenizer = Tokenizer(
-      num_words=max_cuis,
-      oov_token='oovtok',
-      lower=False)
-    self.tokenize()
+    if make_alphabet:
+      print('making a new alphabet...')
+      self.tokenizer = Tokenizer(
+        num_words=max_cuis,
+        oov_token='oovtok',
+        lower=False)
+      self.tokenize()
 
   def tokenize(self):
     """Read data and map words to ints"""
@@ -65,7 +62,7 @@ class DatasetProvider:
     print('vocabulary size:', len(self.tokenizer.word_index))
     pickle_file = open('Model/tokenizer.p', 'wb')
     pickle.dump(self.tokenizer, pickle_file)
-    print('tokenizer saved: Model/tokenizer.p')
+    print('tokenizer saved in Model/tokenizer.p')
 
   def load(self):
     """Generate n examples at a time"""
@@ -111,7 +108,6 @@ if __name__ == "__main__":
 
   dp = DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
-    cfg.get('data', 'model_dir'),
     cfg.getint('args', 'n_examples'))
 
   x, y = dp.load()
