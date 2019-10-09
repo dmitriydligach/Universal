@@ -122,7 +122,7 @@ def main():
   val_x, val_y = dp.load(os.path.join(base, cfg.get('data', 'dev')))
   print('dev x, y shapes:', val_x.shape, val_y.shape)
 
-  # stream training data
+  # out-of-core learning loop
   for train_x, train_y in dp.stream():
     print('train x, y shapes:', train_x.shape, train_y.shape)
 
@@ -135,6 +135,9 @@ def main():
       validation_split=0.0,
       callbacks=[callback])
 
+  # save final model
+  model.save('Model/final.h5')
+
   # probability for each class; (test size, num of classes)
   distribution = model.predict(val_x)
 
@@ -146,6 +149,7 @@ def main():
   p = precision_score(val_y, distribution, average='macro')
   r = recall_score(val_y, distribution, average='macro')
   print("\nmacro: p: %.3f - r: %.3f - f1: %.3f" % (p, r, f1))
+
   f1 = f1_score(val_y, distribution, average='micro')
   p = precision_score(val_y, distribution, average='micro')
   r = recall_score(val_y, distribution, average='micro')

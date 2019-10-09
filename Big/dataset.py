@@ -65,7 +65,7 @@ class DatasetProvider:
     print('tokenizer saved in Model/tokenizer.p')
 
   def stream(self):
-    """Generate n examples at a time"""
+    """Stream training data for out-of-core learning"""
 
     x = [] # one chunk of samples
     y = [] # labels for these samples
@@ -98,7 +98,7 @@ class DatasetProvider:
           x = self.tokenizer.texts_to_matrix(x, mode='binary')
           y = self.tokenizer.texts_to_matrix(y, mode='binary')
           yield x, y[:, 1:]
-          x, y = [],
+          x, y = [], []
 
     print('fetching remaining %d samples...' % len(x))
     print('%d/%d generated so far...' % (count, total_examples))
