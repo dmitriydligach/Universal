@@ -2,10 +2,10 @@
 
 import sys, random, glob, shutil
 
-source_dir = '/Users/Dima/Temp/Train/'
-dest_dir = '/Users/Dima/Temp/Dev/'
+source_dir = '/home/dima/Temp/Train/'
+dest_dir = '/home/dima/Temp/Dev/'
 
-def select_and_move(split=0.2):
+def select_and_move(split=0.15):
   """Pick random files and move to another dir"""
 
   all = glob.glob(source_dir + '*.txt')
