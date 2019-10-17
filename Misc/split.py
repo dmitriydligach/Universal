@@ -9,6 +9,9 @@ base = os.environ['DATA_ROOT']
 source_dir = os.path.join(base, source_dir)
 dest_dir = os.path.join(base, dest_dir)
 
+# same split every time
+random.seed(0)
+
 def select_and_move(split=0.20):
   """Pick random files and move to another dir"""
 
