@@ -123,17 +123,27 @@ def main():
   print('dev x, y shapes:', val_x.shape, val_y.shape)
 
   # out-of-core learning loop
-  for train_x, train_y in dp.stream():
-    print('train x, y shapes:', train_x.shape, train_y.shape)
+  # for train_x, train_y in dp.stream():
+  #   print('train x, y shapes:', train_x.shape, train_y.shape)
 
-    model.fit(
-      train_x,
-      train_y,
-      validation_data=(val_x, val_y),
-      epochs=cfg.getint('bow', 'epochs'),
-      batch_size=cfg.getint('bow', 'batch'),
-      validation_split=0.0,
-      callbacks=[callback])
+  #   model.fit(
+  #     train_x,
+  #     train_y,
+  #     validation_data=(val_x, val_y),
+  #     epochs=cfg.getint('bow', 'epochs'),
+  #     batch_size=cfg.getint('bow', 'batch'),
+  #     validation_split=0.0,
+  #     callbacks=[callback])
+
+  steps = len(dp.file_paths)*dp.samples_per_doc // cfg.getint('bow', 'batch')
+  print('steps per epoch:', steps)
+
+  model.fit_generator(
+    dp.stream(),
+	  validation_data=(val_x, val_y),
+    epochs=cfg.getint('bow', 'epochs'),
+    steps_per_epoch=steps,
+    callbacks=[callback])
 
   # save final model
   model.save('Model/final.h5')

@@ -115,7 +115,8 @@ class DatasetProvider:
     file_paths = glob.glob(path + '*.txt')
     random.shuffle(file_paths)
 
-    for _ in range(self.samples_per_doc):
+    # for _ in range(self.samples_per_doc):
+    for _ in range(1):
       for file_path in file_paths:
 
         tokens = read_tokens(file_path)
