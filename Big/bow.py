@@ -7,7 +7,7 @@ import tensorflow as tf
 np.random.seed(1337)
 rn.seed(1337)
 tf.set_random_seed(1337)
-import os
+import os, math
 tf.logging.set_verbosity(tf.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['PYTHONHASHSEED'] = '0'
@@ -90,7 +90,7 @@ def configure_model_dir():
       os.remove('Model/tokenizer.p')
 
 def main():
-  """Driver function"""
+  """Do out-of-core training here"""
 
   configure_model_dir()
   base = os.environ['DATA_ROOT']
@@ -121,7 +121,7 @@ def main():
   val_x, val_y = dp.load(os.path.join(base, cfg.get('data', 'dev')))
   print('dev x, y shapes:', val_x.shape, val_y.shape)
 
-  steps = dp.train_size // cfg.getint('bow', 'batch')
+  steps = math.ceil(dp.train_size / cfg.getint('bow', 'batch'))
   print('steps per epoch:', steps)
 
   model.fit_generator(

@@ -92,14 +92,12 @@ class DatasetProvider:
         count = count + 1
 
         if len(x) == self.batch_size:
-          print('fetching %d samples...' % len(x))
           print('%d/%d fetched...' % (count, self.train_size))
           x = self.tokenizer.texts_to_matrix(x, mode='binary')
           y = self.tokenizer.texts_to_matrix(y, mode='binary')
           yield x, y[:, 1:]
           x, y = [], []
 
-    print('fetching remaining %d samples...' % len(x))
     print('%d/%d fetched...' % (count, self.train_size))
     x = self.tokenizer.texts_to_matrix(x, mode='binary')
     y = self.tokenizer.texts_to_matrix(y, mode='binary')
