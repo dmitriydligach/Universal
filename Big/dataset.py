@@ -66,7 +66,7 @@ class DatasetProvider:
     print('tokenizer saved in Model/tokenizer.p')
 
   def stream(self):
-    """Stream one batch at a time"""
+    """Infinite stream of data; yield one batch at a time"""
 
     x = [] # one batch of samples
     y = [] # labels for these samples
@@ -74,34 +74,33 @@ class DatasetProvider:
     pkl = open('Model/tokenizer.p', 'rb')
     self.tokenizer = pickle.load(pkl)
 
-    count = 0 # track num of examples fetched
+    while True:
 
-    # loop over all files multiple times
-    for pass_num in range(self.samples_per_doc):
-      print('pass %d over files...' % pass_num)
+      num_fetched = 0
+      for pass_num in range(self.samples_per_doc):
+        print('pass %d over files...' % pass_num)
 
-      # loop over all files
-      for file_path in self.file_paths:
-        tokens = read_tokens(file_path)
-        unique = list(set(tokens))
-        x_count = round(len(unique) * 0.85)
+        for file_path in self.file_paths:
+          tokens = read_tokens(file_path)
+          unique = list(set(tokens))
+          x_count = round(len(unique) * 0.85)
 
-        random.shuffle(unique)
-        x.append(' '.join(unique[:x_count]))
-        y.append(' '.join(unique[x_count:]))
-        count = count + 1
+          random.shuffle(unique)
+          x.append(' '.join(unique[:x_count]))
+          y.append(' '.join(unique[x_count:]))
+          num_fetched += 1
 
-        if len(x) == self.batch_size:
-          print('%d/%d fetched...' % (count, self.train_size))
-          x = self.tokenizer.texts_to_matrix(x, mode='binary')
-          y = self.tokenizer.texts_to_matrix(y, mode='binary')
-          yield x, y[:, 1:]
-          x, y = [], []
+          if len(x) == self.batch_size:
+            print('%d/%d fetched...' % (num_fetched, self.train_size))
+            x = self.tokenizer.texts_to_matrix(x, mode='binary')
+            y = self.tokenizer.texts_to_matrix(y, mode='binary')
+            yield x, y[:, 1:]
+            x, y = [], []
 
-    print('%d/%d fetched...' % (count, self.train_size))
-    x = self.tokenizer.texts_to_matrix(x, mode='binary')
-    y = self.tokenizer.texts_to_matrix(y, mode='binary')
-    yield x, y[:, 1:]
+      print('%d/%d fetched...' % (num_fetched, self.train_size))
+      x = self.tokenizer.texts_to_matrix(x, mode='binary')
+      y = self.tokenizer.texts_to_matrix(y, mode='binary')
+      yield x, y[:, 1:]
 
   def load(self, path):
     """Load entire data into memory"""
