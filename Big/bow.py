@@ -100,7 +100,6 @@ def main():
     cfg.get('args', 'max_files'),
     cfg.getint('args', 'max_cuis'),
     cfg.getint('args', 'samples_per_doc'),
-    cfg.getint('args', 'fetch_batches'),
     cfg.getint('bow', 'batch'),
     cfg.getboolean('args', 'make_alphabet'))
 
@@ -122,20 +121,7 @@ def main():
   val_x, val_y = dp.load(os.path.join(base, cfg.get('data', 'dev')))
   print('dev x, y shapes:', val_x.shape, val_y.shape)
 
-  # out-of-core learning loop
-  # for train_x, train_y in dp.stream():
-  #   print('train x, y shapes:', train_x.shape, train_y.shape)
-
-  #   model.fit(
-  #     train_x,
-  #     train_y,
-  #     validation_data=(val_x, val_y),
-  #     epochs=cfg.getint('bow', 'epochs'),
-  #     batch_size=cfg.getint('bow', 'batch'),
-  #     validation_split=0.0,
-  #     callbacks=[callback])
-
-  steps = len(dp.file_paths)*dp.samples_per_doc // cfg.getint('bow', 'batch')
+  steps = dp.train_size // cfg.getint('bow', 'batch')
   print('steps per epoch:', steps)
 
   model.fit_generator(

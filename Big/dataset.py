@@ -27,20 +27,21 @@ class DatasetProvider:
     max_files,
     max_cuis,
     samples_per_doc,
-    fetch_batches,
     batch_size,
     make_alphabet):
     """Constructor"""
 
     self.samples_per_doc = samples_per_doc
-    self.fetch_samples = batch_size * fetch_batches
+    self.batch_size = batch_size
     self.max_files = None if max_files == 'all' else int(max_files)
 
     # file paths for tokenzier and training
     self.file_paths = glob.glob(train_dir + '*.txt')
     random.shuffle(self.file_paths)
     self.file_paths = self.file_paths[:self.max_files]
+    self.train_size = len(self.file_paths) * self.samples_per_doc
     print('total training files:', len(self.file_paths))
+    print('training set size:', self.train_size)
 
     if make_alphabet:
       self.tokenizer = Tokenizer(
@@ -65,17 +66,15 @@ class DatasetProvider:
     print('tokenizer saved in Model/tokenizer.p')
 
   def stream(self):
-    """Stream training data for out-of-core learning"""
+    """Stream one batch at a time"""
 
-    x = [] # one chunk of samples
+    x = [] # one batch of samples
     y = [] # labels for these samples
 
     pkl = open('Model/tokenizer.p', 'rb')
     self.tokenizer = pickle.load(pkl)
 
-    count = 0 # track num of examples generated so far
-    total_examples = len(self.file_paths) * self.samples_per_doc
-    print('total training examples:', total_examples)
+    count = 0 # track num of examples fetched
 
     # loop over all files multiple times
     for pass_num in range(self.samples_per_doc):
@@ -92,16 +91,16 @@ class DatasetProvider:
         y.append(' '.join(unique[x_count:]))
         count = count + 1
 
-        if len(x) == self.fetch_samples:
-          print('fetching %d samples...' % self.fetch_samples)
-          print('%d/%d generated so far...' % (count, total_examples))
+        if len(x) == self.batch_size:
+          print('fetching %d samples...' % len(x))
+          print('%d/%d fetched...' % (count, self.train_size))
           x = self.tokenizer.texts_to_matrix(x, mode='binary')
           y = self.tokenizer.texts_to_matrix(y, mode='binary')
           yield x, y[:, 1:]
           x, y = [], []
 
     print('fetching remaining %d samples...' % len(x))
-    print('%d/%d generated so far...' % (count, total_examples))
+    print('%d/%d fetched...' % (count, self.train_size))
     x = self.tokenizer.texts_to_matrix(x, mode='binary')
     y = self.tokenizer.texts_to_matrix(y, mode='binary')
     yield x, y[:, 1:]
