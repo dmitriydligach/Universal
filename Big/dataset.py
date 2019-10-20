@@ -101,6 +101,7 @@ class DatasetProvider:
       x = self.tokenizer.texts_to_matrix(x, mode='binary')
       y = self.tokenizer.texts_to_matrix(y, mode='binary')
       yield x, y[:, 1:]
+      x, y = [], []
 
   def load(self, path):
     """Load entire data into memory"""
