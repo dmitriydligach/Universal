@@ -75,10 +75,11 @@ class DatasetProvider:
     self.tokenizer = pickle.load(pkl)
 
     while True:
+      random.seed(100) # same seed for each epoch
 
       num_fetched = 0
       for pass_num in range(self.samples_per_doc):
-        print('pass %d over files...' % pass_num)
+        print('\npass %d over files...' % pass_num)
 
         for file_path in self.file_paths:
           tokens = read_tokens(file_path)
@@ -91,13 +92,13 @@ class DatasetProvider:
           num_fetched += 1
 
           if len(x) == self.batch_size:
-            print('%d/%d fetched...' % (num_fetched, self.train_size))
+            print('\n%d/%d fetched...' % (num_fetched, self.train_size))
             x = self.tokenizer.texts_to_matrix(x, mode='binary')
             y = self.tokenizer.texts_to_matrix(y, mode='binary')
             yield x, y[:, 1:]
             x, y = [], []
 
-      print('%d/%d fetched...' % (num_fetched, self.train_size))
+      print('\n%d/%d fetched...' % (num_fetched, self.train_size))
       x = self.tokenizer.texts_to_matrix(x, mode='binary')
       y = self.tokenizer.texts_to_matrix(y, mode='binary')
       yield x, y[:, 1:]
