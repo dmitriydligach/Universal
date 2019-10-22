@@ -129,6 +129,7 @@ def main():
 	  validation_data=(val_x, val_y),
     epochs=cfg.getint('bow', 'epochs'),
     steps_per_epoch=steps,
+    verbose=0,
     callbacks=[callback])
 
   # save final model

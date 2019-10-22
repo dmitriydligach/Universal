@@ -75,11 +75,12 @@ class DatasetProvider:
     self.tokenizer = pickle.load(pkl)
 
     while True:
-      random.seed(100) # same seed for each epoch
-
+      random.seed(100)
       num_fetched = 0
+
+      # this for loop generates one epoch's worth of samples
       for pass_num in range(self.samples_per_doc):
-        print('\npass %d over files...' % pass_num)
+        print('\npass %d over files...\n' % pass_num)
 
         for file_path in self.file_paths:
           tokens = read_tokens(file_path)
@@ -113,10 +114,8 @@ class DatasetProvider:
     file_paths = glob.glob(path + '*.txt')
     random.shuffle(file_paths)
 
-    # for _ in range(self.samples_per_doc):
-    for _ in range(1):
+    for _ in range(self.samples_per_doc):
       for file_path in file_paths:
-
         tokens = read_tokens(file_path)
         unique = list(set(tokens))
         x_count = round(len(unique) * 0.85)
