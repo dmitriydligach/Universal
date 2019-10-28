@@ -28,7 +28,8 @@ class DatasetProvider:
     max_cuis,
     samples_per_doc,
     batch_size,
-    make_alphabet):
+    make_alphabet,
+    verbose):
     """Constructor"""
 
     self.samples_per_doc = samples_per_doc
@@ -80,7 +81,8 @@ class DatasetProvider:
 
       # this for loop generates one epoch's worth of samples
       for pass_num in range(self.samples_per_doc):
-        print('\npass %d over files...\n' % pass_num)
+        if self.verbose:
+          print('\npass %d over files\n' % pass_num)
 
         for file_path in self.file_paths:
           tokens = read_tokens(file_path)
@@ -93,13 +95,15 @@ class DatasetProvider:
           num_fetched += 1
 
           if len(x) == self.batch_size:
-            print('\n%d/%d fetched...' % (num_fetched, self.train_size))
+            if self.verbose:
+              print('\nfetching %d of %d' % (num_fetched, self.train_size))
             x = self.tokenizer.texts_to_matrix(x, mode='binary')
             y = self.tokenizer.texts_to_matrix(y, mode='binary')
             yield x, y[:, 1:]
             x, y = [], []
 
-      print('\n%d/%d fetched...' % (num_fetched, self.train_size))
+      if self.verbose:
+        print('\nfetching %d of %d' % (num_fetched, self.train_size))
       x = self.tokenizer.texts_to_matrix(x, mode='binary')
       y = self.tokenizer.texts_to_matrix(y, mode='binary')
       yield x, y[:, 1:]

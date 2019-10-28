@@ -101,7 +101,8 @@ def main():
     cfg.getint('args', 'max_cuis'),
     cfg.getint('args', 'samples_per_doc'),
     cfg.getint('bow', 'batch'),
-    cfg.getboolean('args', 'make_alphabet'))
+    cfg.getboolean('args', 'make_alphabet'),
+    cfg.getboolean('args', 'verbose'))
 
   max_cuis = int(cfg.get('args', 'max_cuis'))
   model = get_model(max_cuis, max_cuis - 1)
