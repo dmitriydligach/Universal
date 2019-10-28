@@ -35,6 +35,7 @@ class DatasetProvider:
     self.samples_per_doc = samples_per_doc
     self.batch_size = batch_size
     self.max_files = None if max_files == 'all' else int(max_files)
+    self.verbose = verbose
 
     # file paths for tokenzier and training
     self.file_paths = glob.glob(train_dir + '*.txt')
