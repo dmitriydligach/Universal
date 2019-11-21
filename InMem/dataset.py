@@ -25,12 +25,12 @@ class DatasetProvider:
     self,
     train_dir,
     model_dir,
-    n_examples,
+    samples_per_doc,
     max_cuis):
     """Constructor"""
 
     self.train_dir = train_dir
-    self.n_examples = n_examples
+    self.samples_per_doc = samples_per_doc
 
     if os.path.isdir(model_dir):
       shutil.rmtree(model_dir)
@@ -66,7 +66,7 @@ class DatasetProvider:
       unique = list(set(tokens))
       x_count = round(len(unique) * 0.85)
 
-      for _ in range(self.n_examples):
+      for _ in range(self.samples_per_doc):
         random.shuffle(unique)
         x.append(' '.join(unique[:x_count]))
         labels.append(' '.join(unique[x_count:]))
@@ -89,7 +89,7 @@ if __name__ == "__main__":
   dp = DatasetProvider(
     os.path.join(base, cfg.get('data', 'train')),
     cfg.get('data', 'model_dir'),
-    cfg.getint('args', 'n_examples'))
+    cfg.getint('args', 'samples_per_doc'))
 
   x, y = dp.load()
   print('x:', x.shape)
