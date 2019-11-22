@@ -92,7 +92,7 @@ class DatasetProvider:
     self.input_tokenizer.fit_on_texts(x)
     pickle_file = open('Model/tokenizer.p', 'wb')
     pickle.dump(self.input_tokenizer, pickle_file)
-    print('vocab size:', len(self.input_tokenizer.word_index))
+    print('input vocab:', len(self.input_tokenizer.word_index))
 
   def tokenize_output(self):
     """Map codes to ints"""
@@ -103,6 +103,7 @@ class DatasetProvider:
       y.append(codes_as_string)
 
     self.output_tokenizer.fit_on_texts(y)
+    print('output vocab:', len(self.output_tokenizer.word_index))
 
   def load(self):
     """Make x and y"""
