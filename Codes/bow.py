@@ -19,21 +19,27 @@ import sys
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
 import configparser
+
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.model_selection import train_test_split
-import keras as k
+
+import keras.optimizers as optimizers
+from keras import Input
 from keras.utils.np_utils import to_categorical
-from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
-from keras.models import Sequential
+from keras.models import Model, Sequential
 from keras.layers.core import Dense, Activation, Dropout
-from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
+from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
+from keras.layers import concatenate, dot
 from keras.models import load_model
 from keras.callbacks import Callback
-import dataset, word2vec, callback
+from keras.utils import plot_model
+from keras.callbacks import ModelCheckpoint
+
+import dataset, word2vec
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -44,106 +50,73 @@ warnings.warn = warn
 RESULTS_FILE = 'Model/results.txt'
 MODEL_FILE = 'Model/model.h5'
 
-def print_config(cfg):
-  """Print configuration settings"""
+def get_model(vocabulary_size, n_targets):
+  """Average pooling model"""
 
-  print('train:', cfg.get('data', 'train'))
-  if cfg.has_option('data', 'embed'):
-    print('embeddings:', cfg.get('data', 'embed'))
-  print('test_size', cfg.getfloat('args', 'test_size'))
-  print('batch:', cfg.get('dan', 'batch'))
-  print('epochs:', cfg.get('dan', 'epochs'))
-  print('embdims:', cfg.get('dan', 'embdims'))
-  print('hidden:', cfg.get('dan', 'hidden'))
-  print('learnrt:', cfg.get('dan', 'learnrt'))
+  project = Dense(
+    cfg.getint('bow', 'hidden'),
+    activation=cfg.get('bow', 'activation'),
+    name='HL')
+  drop = Dropout(cfg.getfloat('bow', 'dropout'))
 
-def get_model(cfg, init_vectors, num_of_features):
-  """Model definition"""
+  input_tensor = Input(shape=(vocabulary_size,))
+  x = project(input_tensor)
+  x = drop(x)
+  output_tensor = Dense(n_targets, activation='sigmoid')(x)
 
-  model = Sequential()
-  model.add(Embedding(input_dim=num_of_features,
-                      output_dim=cfg.getint('dan', 'embdims'),
-                      input_length=maxlen,
-                      trainable=True,
-                      weights=init_vectors,
-                      name='EL'))
-  model.add(GlobalAveragePooling1D(name='AL'))
-
-  model.add(Dense(cfg.getint('dan', 'hidden'), name='HL'))
-  model.add(Activation(cfg.get('dan', 'activation')))
-
-  model.add(Dropout(cfg.getfloat('dan', 'dropout')))
-
-  model.add(Dense(classes))
-  model.add(Activation('sigmoid'))
-
+  model = Model(input_tensor, output_tensor)
+  plot_model(model, show_shapes=True, to_file='Model/model.png')
   model.summary()
+
   return model
 
-if __name__ == "__main__":
-
-  cfg = configparser.ConfigParser()
-  cfg.read(sys.argv[1])
-  print_config(cfg)
+def main():
+  """Driver function"""
 
   base = os.environ['DATA_ROOT']
-  train_dir = os.path.join(base, cfg.get('data', 'train'))
-  code_file = os.path.join(base, cfg.get('data', 'codes'))
 
-  dataset = dataset.DatasetProvider(
-    train_dir,
-    code_file,
-    cfg.getint('args', 'min_token_freq'),
-    cfg.getint('args', 'max_tokens_in_file'),
-    cfg.getint('args', 'min_examples_per_code'))
-  x, y = dataset.load()
-  train_x, val_x, train_y, val_y = train_test_split(
-    x,
-    y,
-    test_size=cfg.getfloat('args', 'test_size'))
-  maxlen = max([len(seq) for seq in train_x])
+  dp = dataset.DatasetProvider(
+    os.path.join(base, cfg.get('data', 'train')),
+    os.path.join(base, cfg.get('data', 'codes')),
+    cfg.getint('args', 'max_cuis'))
+  x, y = dp.load()
 
-  init_vectors = None
-  if cfg.has_option('data', 'embed'):
-    embed_file = os.path.join(base, cfg.get('data', 'embed'))
-    w2v = word2vec.Model(embed_file)
-    init_vectors = [w2v.select_vectors(dataset.token2int)]
+  print('x shape:', x.shape)
+  print('y shape:', y.shape)
 
-  # turn x into numpy array among other things
-  classes = len(dataset.code2int)
-  train_x = pad_sequences(train_x, maxlen=maxlen)
-  val_x = pad_sequences(val_x, maxlen=maxlen)
-  train_y = np.array(train_y)
-  val_y = np.array(val_y)
-
-  print('train_x shape:', train_x.shape)
-  print('train_y shape:', train_y.shape)
-  print('val_x shape:', val_x.shape)
-  print('val_y shape:', val_y.shape)
-  print('number of features:', len(dataset.token2int))
-  print('number of labels:', len(dataset.code2int))
-
-  if cfg.has_option('dan', 'optimizer'):
-    optimizer = cfg.get('dan', 'optimizer')
+  # are we training the best model?
+  if cfg.getfloat('args', 'test_size') != 0:
+    train_x, val_x, train_y, val_y = train_test_split(
+      x, y, test_size=cfg.getfloat('args', 'test_size'))
+    validation_data = (val_x, val_y)
   else:
-    optimizer = RMSprop(lr=cfg.getfloat('dan', 'learnrt'))
+    train_x, train_y = x, y
+    validation_data = None
 
-  model = get_model(cfg, init_vectors, len(dataset.token2int))
+  # need to add one to account for the index 0 which is not used
+  model = get_model(cfg.getint('args', 'max_cuis'), y.shape[1])
+  optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
   model.compile(loss='binary_crossentropy',
-                optimizer=optimizer,
+                optimizer=optim(lr=10**cfg.getint('bow', 'log10lr')),
                 metrics=['accuracy'])
+
+  # save the model after every epoch
+  callback = ModelCheckpoint(
+    cfg.get('data', 'model_dir') + 'model.h5',
+    verbose=1,
+    save_best_only=True)
+
   model.fit(train_x,
             train_y,
-            callbacks=[callback.Metrics()] if val_x.shape[0]>0 else None,
-            validation_data=(val_x, val_y) if val_x.shape[0]>0 else None,
-            epochs=cfg.getint('dan', 'epochs'),
-            batch_size=cfg.getint('dan', 'batch'),
-            validation_split=0.0)
+            validation_data=validation_data,
+            epochs=cfg.getint('bow', 'epochs'),
+            batch_size=cfg.getint('bow', 'batch'),
+            validation_split=0.0,
+            callbacks=[callback])
 
-  model.save(MODEL_FILE)
-
-  # do we need to evaluate?
+  # are we training the best model?
   if cfg.getfloat('args', 'test_size') == 0:
+    model.save(cfg.get('data', 'model_dir') + 'model.h5')
     exit()
 
   # probability for each class; (test size, num of classes)
@@ -162,9 +135,10 @@ if __name__ == "__main__":
   r = recall_score(val_y, distribution, average='micro')
   print("micro: p: %.3f - r: %.3f - f1: %.3f" % (p, r, f1))
 
-  outf1 = open(RESULTS_FILE, 'w')
-  int2code = dict((value, key) for key, value in list(dataset.code2int.items()))
-  f1_scores = f1_score(val_y, distribution, average=None)
-  outf1.write("%s|%s\n" % ('macro', f1))
-  for index, f1 in enumerate(f1_scores):
-    outf1.write("%s|%s\n" % (int2code[index], f1))
+if __name__ == "__main__":
+  """Run something"""
+
+  cfg = configparser.ConfigParser()
+  cfg.read(sys.argv[1])
+
+  main()

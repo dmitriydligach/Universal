@@ -135,12 +135,10 @@ if __name__ == "__main__":
   cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
-  input_dir = os.path.join(base, cfg.get('data', 'train'))
-  output_dir = os.path.join(base, cfg.get('data', 'codes'))
 
   dataset = DatasetProvider(
-    input_dir,
-    output_dir,
+    os.path.join(base, cfg.get('data', 'train')),
+    os.path.join(base, cfg.get('data', 'codes')),
     cfg.getint('args', 'max_cuis'))
   x, y = dataset.load()
 
