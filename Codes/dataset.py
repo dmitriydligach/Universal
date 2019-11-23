@@ -24,17 +24,17 @@ def read_tokens(file_path, dropout=None):
   return tokens
 
 class DatasetProvider:
-  """THYME relation data"""
+  """Notes and ICD code data"""
 
   def __init__(self,
                input_dir,
                output_dir,
-               max_cuis):
+               max_cuis,
+               max_codes):
     """Construct it"""
 
     self.input_dir = input_dir
     self.output_dir = output_dir
-    self.max_cuis = max_cuis
 
     # remove old model directory and make a fresh one
     if os.path.isdir(model_dir):
@@ -54,13 +54,16 @@ class DatasetProvider:
 
     # index input text
     self.input_tokenizer = Tokenizer(
-      num_words=max_cuis,
+      num_words=None if max_cuis == 'all' else int(max_cuis),
       oov_token='oovtok',
       lower=False)
     self.tokenize_input()
 
     # index outputs (codes)
-    self.output_tokenizer = Tokenizer(num_words=None)
+    self.output_tokenizer = Tokenizer(
+      num_words=None if max_codes == 'all' else int(max_codes),
+      oov_token='oovtok',
+      lower=False)
     self.tokenize_output()
 
   def index_codes(self, code_file, code_col, prefix, num_digits):

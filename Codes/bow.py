@@ -76,9 +76,10 @@ def main():
   base = os.environ['DATA_ROOT']
 
   dp = dataset.DatasetProvider(
-    os.path.join(base, cfg.get('data', 'train')),
+    os.path.join(base, cfg.get('data', 'cuis')),
     os.path.join(base, cfg.get('data', 'codes')),
-    cfg.getint('args', 'max_cuis'))
+    cfg.get('args', 'max_cuis'),
+    cfg.get('args', 'max_codes'))
   x, y = dp.load()
 
   print('x shape:', x.shape)
