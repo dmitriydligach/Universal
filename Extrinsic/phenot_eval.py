@@ -21,6 +21,7 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_recall_curve, auc
 from sklearn.decomposition import TruncatedSVD
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
@@ -52,6 +53,25 @@ def report_f1(y_test, predictions, average):
   f1 = f1_score(y_test, predictions, average=average)
   print("[%s] p: %.3f - r: %.3f - f1: %.3f" % (average, p, r, f1))
 
+def report_accuracy(y_test, predictions):
+  """Accuracy score"""
+
+  accuracy = accuracy_score(y_test, predictions)
+  print('accuracy: %.3f' % accuracy)
+
+def report_roc_auc(y_test, probs):
+  """ROC and PR AUC scores"""
+
+  roc_auc = roc_auc_score(y_test, probs[:, 1])
+  print('roc auc: %.3f' % roc_auc)
+
+def report_pr_auc(y_true, probs):
+    """PR AUC; x-axis should be recall, y-axis precision"""
+
+    precision, recall, _ = precision_recall_curve(y_true, probs[:, 1])
+    pr_auc = auc(recall, precision)
+    print('pr auc: %.3f' % pr_auc)
+
 def run_evaluation_dense():
   """Use pre-trained patient representations"""
 
@@ -63,15 +83,15 @@ def run_evaluation_dense():
     classifier = LogisticRegression(class_weight='balanced')
     classifier.fit(x_train, y_train)
 
+  print()
   predictions = classifier.predict(x_test)
   report_f1(y_test, predictions, 'macro')
   report_f1(y_test, predictions, 'micro')
+  report_accuracy(y_test, predictions)
 
   probs = classifier.predict_proba(x_test)
-  roc_auc = roc_auc_score(y_test, probs[:, 1])
-  accuracy = accuracy_score(y_test, predictions)
-  print('auc: %.3f' % roc_auc)
-  print('acc: %.3f' % accuracy)
+  report_roc_auc(y_test, probs)
+  report_pr_auc(y_test, probs)
 
 def data_dense():
   """Data to feed into code prediction model"""
