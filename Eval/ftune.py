@@ -75,7 +75,7 @@ def eval():
   model = get_model(len(train_data_provider.label2int))
   optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
   model.compile(loss='sparse_categorical_crossentropy',
-                optimizer=optim(lr=10**cfg.getint('bow', 'log10lr')),
+                optimizer=optim(lr=cfg.getfloat('bow', 'lr')),
                 metrics=['accuracy'])
 
   model.fit(x_train,
