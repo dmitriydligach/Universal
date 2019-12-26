@@ -26,7 +26,7 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def get_model(num_labels=2):
+def get_model(num_labels):
   """Load pre-trained model and get ready for fine-tunining"""
 
   # load pre-trained model
@@ -72,7 +72,7 @@ def eval():
     verbose=1,
     save_best_only=True)
 
-  model = get_model()
+  model = get_model(len(train_data_provider.label2int))
   optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
   model.compile(loss='sparse_categorical_crossentropy',
                 optimizer=optim(lr=10**cfg.getint('bow', 'log10lr')),
@@ -89,9 +89,12 @@ def eval():
   distribution = model.predict(x_test)
   predictions = np.argmax(distribution, axis=1)
 
+  pos_label =train_data_provider.label2int['yes']
+  metrics.report_accuracy(y_test, predictions)
   metrics.report_f1(y_test, predictions, 'macro')
   metrics.report_f1(y_test, predictions, 'micro')
-  metrics.report_accuracy(y_test, predictions)
+  metrics.report_roc_auc(y_test, distribution[:, pos_label])
+  metrics.report_pr_auc(y_test, distribution[:, pos_label])
 
 if __name__ == "__main__":
 
