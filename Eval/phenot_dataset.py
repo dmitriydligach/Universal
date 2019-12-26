@@ -8,7 +8,7 @@ from keras.preprocessing.sequence import pad_sequences
 import i2b2
 
 class DatasetProvider:
-  """Comorboditiy data loader"""
+  """Read data from files and make keras inputs/outputs"""
 
   def __init__(self,
                corpus_path,
