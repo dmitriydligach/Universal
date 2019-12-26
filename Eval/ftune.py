@@ -106,7 +106,7 @@ def eval():
   x_test, y_test = test_data_provider.load_as_one_hot()
 
   callback = ModelCheckpoint(
-    cfg.get('data', 'model_dir') + 'model.h5',
+    './Model/model.h5',
     verbose=1,
     save_best_only=True)
 
