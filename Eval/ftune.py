@@ -10,21 +10,6 @@ import sys
 sys.dont_write_bytecode = True
 import configparser, pickle, shutil
 
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import LinearSVC
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import f1_score
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_recall_curve, auc
-from sklearn.decomposition import TruncatedSVD
-
 import keras.optimizers as optimizers
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
@@ -33,40 +18,13 @@ from keras.callbacks import ModelCheckpoint
 from keras.layers import Dropout, Dense
 
 from phenot_dataset import DatasetProvider
-import i2b2
+import i2b2, metrics
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
   pass
 import warnings
 warnings.warn = warn
-
-def report_f1(y_test, predictions, average):
-  """Report p, r, and f1"""
-
-  p = precision_score(y_test, predictions, average=average)
-  r = recall_score(y_test, predictions, average=average)
-  f1 = f1_score(y_test, predictions, average=average)
-  print("[%s] p: %.3f - r: %.3f - f1: %.3f" % (average, p, r, f1))
-
-def report_accuracy(y_test, predictions):
-  """Accuracy score"""
-
-  accuracy = accuracy_score(y_test, predictions)
-  print('accuracy: %.3f' % accuracy)
-
-def report_roc_auc(y_test, probs):
-  """ROC and PR AUC scores"""
-
-  roc_auc = roc_auc_score(y_test, probs[:, 1])
-  print('roc auc: %.3f' % roc_auc)
-
-def report_pr_auc(y_true, probs):
-    """PR AUC; x-axis should be recall, y-axis precision"""
-
-    precision, recall, _ = precision_recall_curve(y_true, probs[:, 1])
-    pr_auc = auc(recall, precision)
-    print('pr auc: %.3f' % pr_auc)
 
 def get_model(num_labels=2):
   """Load pre-trained model and get ready for fine-tunining"""
@@ -131,9 +89,9 @@ def eval():
   distribution = model.predict(x_test)
   predictions = np.argmax(distribution, axis=1)
 
-  report_f1(y_test, predictions, 'macro')
-  report_f1(y_test, predictions, 'micro')
-  report_accuracy(y_test, predictions)
+  metrics.report_f1(y_test, predictions, 'macro')
+  metrics.report_f1(y_test, predictions, 'micro')
+  metrics.report_accuracy(y_test, predictions)
 
 if __name__ == "__main__":
 
