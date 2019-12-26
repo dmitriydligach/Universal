@@ -8,7 +8,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import sys
 sys.dont_write_bytecode = True
-import configparser, pickle
+import configparser, pickle, shutil
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -92,6 +92,10 @@ def eval():
   """Train and evaluate"""
 
   data_root = os.environ['DATA_ROOT']
+
+  if os.path.isdir('./Model/'):
+    shutil.rmtree('./Model/')
+  os.mkdir('./Model/')
 
   train_data_provider = DatasetProvider(
     os.path.join(data_root, cfg.get('data', 'train')),
