@@ -39,6 +39,10 @@ def get_model(num_labels):
   pretrained.layers.pop()
   pretrained.layers.pop()
 
+  # freeze pretrained weights
+  for layer in pretrained.layers:
+    layer.trainable = False
+
   # pre-trained model's hidden layer output
   output = pretrained.layers[-1].output
 
@@ -50,7 +54,7 @@ def get_model(num_labels):
   model.summary()
   return model
 
-def eval():
+def main():
   """Train and evaluate"""
 
   data_root = os.environ['DATA_ROOT']
@@ -64,24 +68,28 @@ def eval():
     cfg.get('data', 'tokenizer_pickle'),
     None)
   x_train, y_train = train_data_provider.load_as_one_hot()
-  print('x_train shapes:', x_train.shape)
+  print('loaded x_train:', x_train.shape)
 
   # are we evaluating on test or dev?
   if cfg.getfloat('data', 'val_size') != 0:
     x_train, x_val, y_train, y_val = train_test_split(
-      x_train, y_train, test_size=cfg.getfloat('data', 'val_size'))
-    callbacks = [ModelCheckpoint('./Model/model.h5',
-                               verbose=1, save_best_only=True)]
+      x_train,
+      y_train,
+      test_size=cfg.getfloat('data', 'val_size'))
+    callbacks = [ModelCheckpoint(
+      './Model/model.h5',
+      verbose=1, save_best_only=True)]
     validation_data = (x_val, y_val)
-    print('x_train shapes:', x_train.shape)
-    print('x_val shapes:', x_val.shape)
+    print('x_train shape:', x_train.shape)
+    print('x_val shape:', x_val.shape)
+
   else:
     test_data_provider = DatasetProvider(
       os.path.join(data_root, cfg.get('data', 'test')),
       cfg.get('data', 'tokenizer_pickle'),
       None)
     x_test, y_test = test_data_provider.load_as_one_hot()
-    print('x_test:', x_test.shape)
+    print('loaded x_test:', x_test.shape)
     validation_data = None
     callbacks = None
 
@@ -100,7 +108,7 @@ def eval():
             callbacks=callbacks)
 
   if cfg.getfloat('data', 'val_size') != 0:
-    # load best last best model
+    # during validation, load last best model
     model = load_model('./Model/model.h5')
     x_test, y_test = x_val, y_val
 
@@ -117,4 +125,4 @@ if __name__ == "__main__":
   cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
 
-  eval()
+  main()

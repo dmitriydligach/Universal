@@ -27,7 +27,7 @@ class DatasetProvider:
     """Convert examples into lists of indices"""
 
     x = [] # (n_docs, max_seq_len)
-    y = []  # int labels
+    y = [] # int labels
 
     for d in os.listdir(self.corpus_path):
       label_dir = os.path.join(self.corpus_path, d)
@@ -48,7 +48,7 @@ class DatasetProvider:
     """Convert examples into lists of indices"""
 
     x = [] # eventually ndarray (n_docs, num_features)
-    y = []  # int labels
+    y = [] # int labels
 
     for d in os.listdir(self.corpus_path):
       label_dir = os.path.join(self.corpus_path, d)
