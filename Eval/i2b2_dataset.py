@@ -5,7 +5,7 @@ sys.dont_write_bytecode = True
 sys.path.append('../Lib/')
 import configparser, os, pickle, random
 from keras.preprocessing.sequence import pad_sequences
-import i2b2
+import i2b2tools
 
 # can be used to turn this into a binary task
 LABEL2INT = {'Y':0, 'N':1, 'Q':2, 'U':3}
@@ -38,7 +38,7 @@ class DatasetProvider:
     y = [] # int labels
 
     # document id -> label mapping
-    doc2label = i2b2.parse_standoff(
+    doc2label = i2b2tools.parse_standoff(
       self.annot_xml,
       self.disease,
       self.judgement)
@@ -71,7 +71,7 @@ class DatasetProvider:
     y = [] # int labels
 
     # document id -> label mapping
-    doc2label = i2b2.parse_standoff(
+    doc2label = i2b2tools.parse_standoff(
       self.annot_xml,
       self.disease,
       self.judgement)

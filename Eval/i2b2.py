@@ -24,7 +24,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
 from keras.models import Model
 from i2b2_dataset import DatasetProvider
-import i2b2
+import i2b2tools
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -135,7 +135,7 @@ def run_evaluation_all_diseases():
   test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
 
   ps = []; rs = []; f1s = []
-  for disease in i2b2.get_disease_names(test_annot, set()):
+  for disease in i2b2tools.get_disease_names(test_annot, set()):
     p, r, f1 = run_evaluation(disease)
     ps.append(p); rs.append(r); f1s.append(f1)
 
