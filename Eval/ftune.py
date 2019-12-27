@@ -10,6 +10,8 @@ import sys
 sys.dont_write_bytecode = True
 import configparser, pickle, shutil
 
+from sklearn.model_selection import train_test_split
+
 import keras.optimizers as optimizers
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
@@ -46,7 +48,6 @@ def get_model(num_labels):
   model = Model(inputs=pretrained.input, outputs=output)
 
   model.summary()
-
   return model
 
 def eval():
@@ -63,17 +64,26 @@ def eval():
     cfg.get('data', 'tokenizer_pickle'),
     None)
   x_train, y_train = train_data_provider.load_as_one_hot()
+  print('x_train shapes:', x_train.shape)
 
-  test_data_provider = DatasetProvider(
-    os.path.join(data_root, cfg.get('data', 'test')),
-    cfg.get('data', 'tokenizer_pickle'),
-    None)
-  x_test, y_test = test_data_provider.load_as_one_hot()
-
-  callback = ModelCheckpoint(
-    './Model/model.h5',
-    verbose=1,
-    save_best_only=True)
+  # are we evaluating on test or dev?
+  if cfg.getfloat('data', 'val_size') != 0:
+    x_train, x_val, y_train, y_val = train_test_split(
+      x_train, y_train, test_size=cfg.getfloat('data', 'val_size'))
+    callbacks = [ModelCheckpoint('./Model/model.h5',
+                               verbose=1, save_best_only=True)]
+    validation_data = (x_val, y_val)
+    print('x_train shapes:', x_train.shape)
+    print('x_val shapes:', x_val.shape)
+  else:
+    test_data_provider = DatasetProvider(
+      os.path.join(data_root, cfg.get('data', 'test')),
+      cfg.get('data', 'tokenizer_pickle'),
+      None)
+    x_test, y_test = test_data_provider.load_as_one_hot()
+    print('x_test:', x_test.shape)
+    validation_data = None
+    callbacks = None
 
   model = get_model(len(train_data_provider.label2int))
   optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
@@ -83,19 +93,22 @@ def eval():
 
   model.fit(x_train,
             y_train,
+            validation_data=validation_data,
             epochs=cfg.getint('bow', 'epochs'),
             batch_size=cfg.getint('bow', 'batch'),
-            validation_split=0.2,
-            callbacks=[callback])
+            validation_split=0.0,
+            callbacks=callbacks)
 
-  # (test size, num of classes)
+  if cfg.getfloat('data', 'val_size') != 0:
+    # load best last best model
+    model = load_model('./Model/model.h5')
+    x_test, y_test = x_val, y_val
+
+  # distribution.shape: (test size, num of classes)
   distribution = model.predict(x_test)
   predictions = np.argmax(distribution, axis=1)
 
   pos_label =train_data_provider.label2int['yes']
-  metrics.report_accuracy(y_test, predictions)
-  metrics.report_f1(y_test, predictions, 'macro')
-  metrics.report_f1(y_test, predictions, 'micro')
   metrics.report_roc_auc(y_test, distribution[:, pos_label])
   metrics.report_pr_auc(y_test, distribution[:, pos_label])
 
