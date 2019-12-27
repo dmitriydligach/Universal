@@ -29,18 +29,21 @@ warnings.warn = warn
 def get_model(num_labels):
   """Load pre-trained model and get ready for fine-tunining"""
 
-  # load pre-trained model
-  rep_layer = cfg.get('data', 'rep_layer')
+  # https://stackoverflow.com/questions/41668813/
+  # how-to-add-and-remove-new-layers-in-keras-after-loading-weights
   pretrained = load_model(cfg.get('data', 'model_file'))
-  base = Model(
-    inputs=pretrained.input,
-    outputs=pretrained.get_layer(rep_layer).output)
 
-  # add logistic regression layer
-  model = Sequential()
-  model.add(base)
-  model.add(Dropout(cfg.getfloat('bow', 'dropout')))
-  model.add(Dense(num_labels, activation='softmax'))
+  # remove code prediction and dropout layers
+  pretrained.layers.pop()
+  pretrained.layers.pop()
+
+  # pre-trained model's hidden layer output
+  output = pretrained.layers[-1].output
+
+  output = Dropout(cfg.getfloat('bow', 'dropout'))(output)
+  output = Dense(num_labels, activation='softmax')(output)
+
+  model = Model(inputs=pretrained.input, outputs=output)
 
   model.summary()
 
