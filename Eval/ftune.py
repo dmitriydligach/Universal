@@ -98,7 +98,6 @@ def main():
   model.compile(loss='sparse_categorical_crossentropy',
                 optimizer=optim(lr=cfg.getfloat('bow', 'lr')),
                 metrics=['accuracy'])
-
   model.fit(x_train,
             y_train,
             validation_data=validation_data,
@@ -106,6 +105,28 @@ def main():
             batch_size=cfg.getint('bow', 'batch'),
             validation_split=0.0,
             callbacks=callbacks)
+
+  # start fine-tuning
+
+  # https://stackoverflow.com/questions/47995324/
+  # does-model-compile-initialize-all-the-weights-and-biases-in-keras-tensorflow/47996024
+
+  for layer in model.layers:
+    print('layer: %s, trainable: %s' % (layer.name, layer.trainable))
+    layer.trainable = True
+
+  model.compile(loss='sparse_categorical_crossentropy',
+                optimizer=optim(lr=1e-5),
+                metrics=['accuracy'])
+  model.fit(x_train,
+            y_train,
+            validation_data=validation_data,
+            epochs=1,
+            batch_size=cfg.getint('bow', 'batch'),
+            validation_split=0.0,
+            callbacks=callbacks)
+
+  # end fine-tunining
 
   if cfg.getfloat('data', 'val_size') != 0:
     # during validation, load last best model
