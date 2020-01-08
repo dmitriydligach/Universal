@@ -116,12 +116,12 @@ def main():
     layer.trainable = True
 
   model.compile(loss='sparse_categorical_crossentropy',
-                optimizer=optim(lr=1e-5),
+                optimizer=optim(lr=5e-9),
                 metrics=['accuracy'])
   model.fit(x_train,
             y_train,
             validation_data=validation_data,
-            epochs=1,
+            epochs=6,
             batch_size=cfg.getint('bow', 'batch'),
             validation_split=0.0,
             callbacks=callbacks)
