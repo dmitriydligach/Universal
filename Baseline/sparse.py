@@ -30,13 +30,16 @@ def grid_search(x, y, scoring):
   gs = GridSearchCV(lr, param_grid, scoring=scoring, cv=10)
   gs.fit(x, y)
 
+  print('best model:')
+  print(gs.best_estimator_)
+
   return gs.best_estimator_
 
 def run_eval(x_train, y_train, x_test, y_test, search=True):
   """Evaluation on test set"""
 
   if search:
-    classifier = grid_search(x_train, y_train, 'f1_macro')
+    classifier = grid_search(x_train, y_train, 'roc_auc')
   else:
     classifier = LogisticRegression(class_weight='balanced')
     model = classifier.fit(x_train, y_train)
