@@ -17,36 +17,21 @@ class DatasetProvider:
     self.corpus_path = corpus_path
     self.label2int = {'no':0, 'yes':1}
 
-  def get_cuis(self, file_name, ignore_negation=True):
-    """Return file as a list of CUIs"""
-
-    infile = os.path.join(self.corpus_path, file_name)
-    text = open(infile).read().rstrip()
-
-    tokens = []
-    for token in text.split():
-      if ignore_negation and token.startswith(CUI_NEG_PREF):
-        # drop negation for negated CUIs
-        tokens.append(token[len(CUI_NEG_PREF):])
-      else:
-        tokens.append(token)
-
-    return tokens
-
   def load_sklearn(self):
     """Assume each subdir is a separate class"""
 
     labels = []    # int labels
     examples = []  # examples as strings
 
-    for d in os.listdir(self.corpus_path):
-      dir_path = os.path.join(self.corpus_path, d)
+    for dir in os.listdir(self.corpus_path):
+      dir_path = os.path.join(self.corpus_path, dir)
 
       for f in os.listdir(dir_path):
         file_path = os.path.join(dir_path, f)
-        file_feat_list = self.get_cuis(file_path)
-        examples.append(' '.join(file_feat_list))
-        labels.append(self.label2int[d.lower()])
+        file_text = open(file_path).read().rstrip()
+        examples.append(file_text)
+        int_label = self.label2int[dir.lower()]
+        labels.append(int_label)
 
     return examples, labels
 

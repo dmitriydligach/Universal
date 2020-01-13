@@ -4,7 +4,7 @@ import pandas, os
 
 # where to read and store the data
 ROOT = os.path.join(os.environ['DATA_ROOT'], 'Injury/')
-CSV = 'Csv/001_Chest-Trauma-CT-All.csv'
+CSV = 'Csv/001_Chest-Trauma-Hour-1.csv'
 
 # convert csv values into path
 test2path = {'0': 'Train/', '1': 'Test/'}
