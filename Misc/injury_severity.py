@@ -3,7 +3,7 @@
 import pandas, os
 
 # where to read and store the data
-ROOT = '/Users/Dima/Loyola/Data/Injury/'
+ROOT = os.path.join(os.environ['DATA_ROOT'], 'Injury/')
 CSV = 'Csv/001_Chest-Trauma-CT-All.csv'
 
 # convert csv values into path
