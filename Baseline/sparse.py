@@ -30,8 +30,7 @@ def grid_search(x, y, scoring):
   gs = GridSearchCV(lr, param_grid, scoring=scoring, cv=10)
   gs.fit(x, y)
 
-  print('best model:')
-  print(gs.best_estimator_)
+  print('best model:\n', str(gs.best_estimator_))
 
   return gs.best_estimator_
 

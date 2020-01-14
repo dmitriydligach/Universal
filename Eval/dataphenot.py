@@ -5,7 +5,6 @@ sys.dont_write_bytecode = True
 sys.path.append('../Lib/')
 import configparser, os, pickle, random
 from keras.preprocessing.sequence import pad_sequences
-import i2b2
 
 class DatasetProvider:
   """Read data from files and make keras inputs/outputs"""

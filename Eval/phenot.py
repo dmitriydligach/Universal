@@ -32,7 +32,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
 from keras.models import Model
 
-from phenot_dataset import DatasetProvider
+from dataphenot import DatasetProvider
 import metrics
 
 # ignore sklearn warnings
@@ -46,8 +46,10 @@ def grid_search(x, y, scoring):
 
   param_grid = {'C':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]}
   lr = LogisticRegression(class_weight='balanced', max_iter=100000)
+
   gs = GridSearchCV(lr, param_grid, scoring=scoring, cv=10)
   gs.fit(x, y)
+  print('best model:\n', str(gs.best_estimator_))
 
   return gs.best_estimator_
 

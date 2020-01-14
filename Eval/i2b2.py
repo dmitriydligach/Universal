@@ -23,7 +23,7 @@ from sklearn.decomposition import TruncatedSVD
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
 from keras.models import Model
-from i2b2_dataset import DatasetProvider
+from datai2b2 import DatasetProvider
 import i2b2tools
 
 # ignore sklearn warnings
