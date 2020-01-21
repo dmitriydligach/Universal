@@ -55,12 +55,12 @@ def data_sparse():
   test_dir = os.path.join(base, cfg.get('data', 'test'))
 
   # load training data
-  dataset_provider = dataset.DatasetProvider(train_dir)
-  x_train, y_train = dataset_provider.load_sklearn()
+  train_data_provider = dataset.DatasetProvider(train_dir)
+  x_train, y_train = train_data_provider.load_sklearn()
 
   # load test data
-  dataset_provider = dataset.DatasetProvider(test_dir)
-  x_test, y_test = dataset_provider.load_sklearn()
+  test_data_provider = dataset.DatasetProvider(test_dir)
+  x_test, y_test = test_data_provider.load_sklearn()
 
   # turn xs into tfidf vectors
   vectorizer = TfidfVectorizer()
