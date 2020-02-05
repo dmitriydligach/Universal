@@ -19,7 +19,7 @@ from keras.models import Model, Sequential
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Dropout, Dense
 
-from phenot_dataset import DatasetProvider
+from dataphenot import DatasetProvider
 import i2b2, metrics
 
 # ignore sklearn warnings
@@ -46,12 +46,18 @@ def get_model(num_labels):
   # pre-trained model's hidden layer output
   output = pretrained.layers[-1].output
 
-  output = Dropout(cfg.getfloat('bow', 'dropout'))(output)
+  output = Dropout(cfg.getfloat('linear', 'dropout'))(output)
   output = Dense(num_labels, activation='softmax')(output)
 
   model = Model(inputs=pretrained.input, outputs=output)
 
   model.summary()
+
+  print()
+  for layer in model.layers:
+    print('%s: %s' % (layer.name, layer.trainable))
+  print()
+
   return model
 
 def main():
@@ -93,40 +99,43 @@ def main():
     validation_data = None
     callbacks = None
 
+  # train the linear classification layer
   model = get_model(len(train_data_provider.label2int))
-  optim = getattr(optimizers, cfg.get('bow', 'optimizer'))
+  optim = getattr(optimizers, cfg.get('linear', 'optimizer'))
   model.compile(loss='sparse_categorical_crossentropy',
-                optimizer=optim(lr=cfg.getfloat('bow', 'lr')),
+                optimizer=optim(lr=cfg.getfloat('linear', 'lr')),
                 metrics=['accuracy'])
   model.fit(x_train,
             y_train,
             validation_data=validation_data,
-            epochs=cfg.getint('bow', 'epochs'),
-            batch_size=cfg.getint('bow', 'batch'),
+            epochs=cfg.getint('linear', 'epochs'),
+            batch_size=cfg.getint('linear', 'batch'),
             validation_split=0.0,
             callbacks=callbacks)
 
-  # start fine-tuning
-
+  # fine-tune the pre-trained layers
   # https://stackoverflow.com/questions/47995324/
   # does-model-compile-initialize-all-the-weights-and-biases-in-keras-tensorflow/47996024
 
-  for layer in model.layers:
-    print('layer: %s, trainable: %s' % (layer.name, layer.trainable))
-    layer.trainable = True
+  if cfg.getboolean('base', 'finetune'):
 
-  model.compile(loss='sparse_categorical_crossentropy',
-                optimizer=optim(lr=5e-9),
-                metrics=['accuracy'])
-  model.fit(x_train,
-            y_train,
-            validation_data=validation_data,
-            epochs=6,
-            batch_size=cfg.getint('bow', 'batch'),
-            validation_split=0.0,
-            callbacks=callbacks)
+    print()
+    for layer in model.layers:
+      layer.trainable = True
+      print('%s: %s' % (layer.name, layer.trainable))
 
-  # end fine-tunining
+    optim = getattr(optimizers, cfg.get('base', 'optimizer'))
+    model.compile(loss='sparse_categorical_crossentropy',
+                  optimizer=optim(lr=cfg.getfloat('base', 'lr')),
+                  metrics=['accuracy'])
+
+    model.fit(x_train,
+              y_train,
+              validation_data=validation_data,
+              epochs=cfg.getint('base', 'epochs'),
+              batch_size=cfg.getint('base', 'batch'),
+              validation_split=0.0,
+              callbacks=callbacks)
 
   if cfg.getfloat('data', 'val_size') != 0:
     # during validation, load last best model
