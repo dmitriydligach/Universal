@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import numpy as np
+
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import accuracy_score
@@ -30,6 +32,33 @@ def report_pr_auc(y_true, probs):
     precision, recall, _ = precision_recall_curve(y_true, probs)
     pr_auc = auc(recall, precision)
     print('pr auc: %.3f' % pr_auc)
+
+def report_roc_auc_ci(y_test, probs, samples=100000):
+  """Confidence 95% confidence intervals on ROC AUC"""
+
+  y_test = np.array(y_test)
+  rs = np.random.RandomState(2020)
+
+  # https://stackoverflow.com/questions/19124239/
+  # scikit-learn-roc-curve-with-confidence-intervals
+
+  scores = []
+  for _ in range(samples):
+    indices = rs.randint(0, len(y_test), len(y_test))
+
+    if len(np.unique(y_test[indices])) < 2:
+      continue # reject sample
+
+    score = roc_auc_score(y_test[indices], probs[indices])
+    scores.append(score)
+
+  sorted = np.array(scores)
+  sorted.sort()
+
+  lower = sorted[int(0.025 * len(scores))]
+  upper = sorted[int(0.975 * len(scores))]
+
+  print('%.3f < %.3f < %.3f' % (lower, np.mean(scores), upper))
 
 if __name__ == "__main__":
 

@@ -46,6 +46,7 @@ def run_eval(x_train, y_train, x_test, y_test, search=True):
   probs = classifier.predict_proba(x_test)
   metrics.report_roc_auc(y_test, probs[:, 1])
   metrics.report_pr_auc(y_test, probs[:, 1])
+  metrics.report_roc_auc_ci(y_test, probs[:, 1])
 
 def data_sparse():
   """Bag-of-cuis data for sparse evaluation"""
