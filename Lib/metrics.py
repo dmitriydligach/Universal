@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import scipy
 import numpy as np
 
 from sklearn.metrics import f1_score
@@ -59,7 +60,14 @@ def report_roc_auc_ci(y_test, probs, n_samples=100000):
   upper = sorted[int(0.975 * len(sorted))]
   mean = np.mean(scores)
 
-  print('%.3f < %.3f < %.3f' % (lower, mean, upper))
+  print('boostrapping CIs: %.3f < %.3f < %.3f' % (lower, mean, upper))
+
+  # sanity check
+  std_err = np.std(scores) / np.sqrt(len(y_test))
+  ci = 1.96 * std_err
+  lower = mean - ci
+  upper = mean + ci
+  print('approximate CIs: %.3f < %.3f < %.3f' % (lower, mean, upper))
 
 if __name__ == "__main__":
 
