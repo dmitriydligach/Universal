@@ -33,21 +33,21 @@ def report_pr_auc(y_true, probs):
     pr_auc = auc(recall, precision)
     print('pr auc: %.3f' % pr_auc)
 
-def report_roc_auc_ci(y_test, probs, samples=100000):
+def report_roc_auc_ci(y_test, probs, n_samples=100000):
   """Confidence 95% confidence intervals on ROC AUC"""
 
-  y_test = np.array(y_test)
-  rs = np.random.RandomState(2020)
-
-  # https://stackoverflow.com/questions/19124239/
+  # source: https://stackoverflow.com/questions/19124239/
   # scikit-learn-roc-curve-with-confidence-intervals
 
-  scores = []
-  for _ in range(samples):
-    indices = rs.randint(0, len(y_test), len(y_test))
+  rs = np.random.RandomState(2020)
+  y_test = np.array(y_test)
+  probs = np.array(probs)
 
+  scores = []
+  for _ in range(n_samples):
+    indices = rs.randint(0, len(y_test), len(y_test))
     if len(np.unique(y_test[indices])) < 2:
-      continue # reject sample
+        continue
 
     score = roc_auc_score(y_test[indices], probs[indices])
     scores.append(score)
@@ -55,10 +55,11 @@ def report_roc_auc_ci(y_test, probs, samples=100000):
   sorted = np.array(scores)
   sorted.sort()
 
-  lower = sorted[int(0.025 * len(scores))]
-  upper = sorted[int(0.975 * len(scores))]
+  lower = sorted[int(0.025 * len(sorted))]
+  upper = sorted[int(0.975 * len(sorted))]
+  mean = np.mean(scores)
 
-  print('%.3f < %.3f < %.3f' % (lower, np.mean(scores), upper))
+  print('%.3f < %.3f < %.3f' % (lower, mean, upper))
 
 if __name__ == "__main__":
 
