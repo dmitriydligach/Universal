@@ -34,8 +34,8 @@ def report_pr_auc(y_true, probs):
     pr_auc = auc(recall, precision)
     print('pr auc: %.3f' % pr_auc)
 
-def report_roc_auc_ci(y_test, probs, n_samples=100000):
-  """Confidence 95% confidence intervals on ROC AUC"""
+def report_ci(y_test, probs, metric, n_samples=10000):
+  """95% confidence intervals on a metric"""
 
   # source: https://stackoverflow.com/questions/19124239/
   # scikit-learn-roc-curve-with-confidence-intervals
@@ -47,10 +47,7 @@ def report_roc_auc_ci(y_test, probs, n_samples=100000):
   scores = []
   for _ in range(n_samples):
     indices = rs.randint(0, len(y_test), len(y_test))
-    if len(np.unique(y_test[indices])) < 2:
-        continue
-
-    score = roc_auc_score(y_test[indices], probs[indices])
+    score = metric(y_test[indices], probs[indices])
     scores.append(score)
 
   sorted = np.array(scores)
