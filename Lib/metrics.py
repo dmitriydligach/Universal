@@ -39,7 +39,7 @@ def report_pr_auc(y_true, probs):
     pr_auc = pr_auc_score(y_true, probs)
     print('pr auc: %.3f' % pr_auc)
 
-def report_ci(y_test, probs, metric, n_samples=10000):
+def report_ci(y_test, probs, metric, n_samples=100000):
   """95% confidence intervals on a metric"""
 
   # source: https://stackoverflow.com/questions/19124239/

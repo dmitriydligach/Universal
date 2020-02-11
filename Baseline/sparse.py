@@ -10,9 +10,8 @@ from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_val_score
-from sklearn.metrics import roc_auc_score
 
-import configparser, os
+import configparser, os, sklearn
 import dataset, metrics
 
 # ignore sklearn warnings
@@ -45,11 +44,12 @@ def run_eval(x_train, y_train, x_test, y_test, search=True):
     model = classifier.fit(x_train, y_train)
 
   probs = classifier.predict_proba(x_test)
-  metrics.report_roc_auc(y_test, probs[:, 1])
-  metrics.report_pr_auc(y_test, probs[:, 1])
 
-  # metrics.report_roc_auc_ci(y_test, probs[:, 1])
-  metrics.report_ci(y_test, probs[:, 1], roc_auc_score)
+  metrics.report_roc_auc(y_test, probs[:, 1])
+  metrics.report_ci(y_test, probs[:, 1], sklearn.metrics.roc_auc_score)
+
+  metrics.report_pr_auc(y_test, probs[:, 1])
+  metrics.report_ci(y_test, probs[:, 1], metrics.pr_auc_score)
 
 def data_sparse():
   """Bag-of-cuis data for sparse evaluation"""
