@@ -9,10 +9,10 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import auc
 
-def pr_auc_score(y_true, probs):
+def pr_auc_score(y_test, probs):
   """Compute PR AUC score"""
 
-  p, r, _ = precision_recall_curve(y_true, probs)
+  p, r, _ = precision_recall_curve(y_test, probs)
   return auc(r, p)
 
 def report_f1(y_test, predictions, average):
@@ -33,13 +33,13 @@ def report_roc_auc(y_test, probs):
   roc_auc = roc_auc_score(y_test, probs)
   print('roc auc: %.3f' % roc_auc)
 
-def report_pr_auc(y_true, probs):
+def report_pr_auc(y_test, probs):
     """PR AUC; x-axis should be recall, y-axis precision"""
 
-    pr_auc = pr_auc_score(y_true, probs)
+    pr_auc = pr_auc_score(y_test, probs)
     print('pr auc: %.3f' % pr_auc)
 
-def report_ci(y_test, probs, metric, n_samples=100000):
+def report_ci(y_test, probs, metric, n_samples=10000):
   """95% confidence intervals on a metric"""
 
   # source: https://stackoverflow.com/questions/19124239/

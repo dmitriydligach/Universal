@@ -11,7 +11,7 @@ import sys
 sys.dont_write_bytecode = True
 sys.path.append('../Lib/')
 
-import configparser, pickle
+import configparser, pickle, sklearn
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -66,8 +66,12 @@ def run_evaluation_dense():
 
   # preds = classifier.predict(x_test)
   probs = classifier.predict_proba(x_test)
+
   metrics.report_roc_auc(y_test, probs[:, 1])
+  metrics.report_ci(y_test, probs[:, 1], sklearn.metrics.roc_auc_score)
+
   metrics.report_pr_auc(y_test, probs[:, 1])
+  metrics.report_ci(y_test, probs[:, 1], metrics.pr_auc_score)
 
 def data_dense():
   """Data to feed into code prediction model"""
