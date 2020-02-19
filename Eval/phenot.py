@@ -64,14 +64,8 @@ def run_evaluation_dense():
     classifier = LogisticRegression(class_weight='balanced')
     classifier.fit(x_train, y_train)
 
-  # preds = classifier.predict(x_test)
   probs = classifier.predict_proba(x_test)
-
   metrics.report_roc_auc(y_test, probs[:, 1])
-  metrics.report_ci(y_test, probs[:, 1], sklearn.metrics.roc_auc_score)
-
-  metrics.report_pr_auc(y_test, probs[:, 1])
-  metrics.report_ci(y_test, probs[:, 1], metrics.pr_auc_score)
 
 def data_dense():
   """Data to feed into code prediction model"""
